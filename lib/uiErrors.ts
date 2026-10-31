@@ -7,6 +7,11 @@ export const NOT_PDF_ERROR: UiError = {
   description: "Choose a PDF file. Other file types are not supported.",
 };
 
+export const SAMPLE_ERROR: UiError = {
+  title: "The sample could not be opened",
+  description: "Reload the page and try again.",
+};
+
 const GENERIC_ERROR: UiError = {
   title: "Generation failed",
   description: "Something went wrong while generating the material. Try again shortly.",

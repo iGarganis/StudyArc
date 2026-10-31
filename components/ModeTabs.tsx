@@ -190,7 +190,7 @@ export function ModeTabs({
                   </Button>
                 ) : (
                   <p>
-                    To generate this format, upload the PDF again.
+                    To generate this format, upload a PDF.
                   </p>
                 )}
               </Card>

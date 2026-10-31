@@ -121,6 +121,12 @@ const e = (msg, status) => Object.assign(new Error(msg), { status });
 ok(toAIProviderError(e("Quota exceeded ... GenerateRequestsPerDayPerProjectPerModel ... limit: 0", 429)).code === "QUOTA_EXHAUSTED", "daily/limit:0 → QUOTA_EXHAUSTED");
 const perMin = toAIProviderError(e("Quota exceeded for GenerateRequestsPerMinutePerProjectPerModel-FreeTier. Please retry.", 429));
 ok(perMin.code === "RATE_LIMITED" && perMin.retryable, "per-minute → RATE_LIMITED (retryable)");
+// Both real 429 messages open with the same sentence about billing.
+const billing = "You exceeded your current quota, please check your plan and billing details.";
+const daily = toAIProviderError(e(`${billing} Quota exceeded for metric: generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash, description: Generate content requests per day limit exceeded on Free Tier.`, 429));
+ok(daily.code === "QUOTA_EXHAUSTED" && !daily.retryable, "real daily 429 → QUOTA_EXHAUSTED");
+const minute = toAIProviderError(e(`${billing} Quota exceeded for GenerateRequestsPerMinutePerProjectPerModel-FreeTier, limit: 10.`, 429));
+ok(minute.code === "RATE_LIMITED" && minute.retryable, "per-minute 429 mentioning billing → RATE_LIMITED");
 ok(toAIProviderError(e("model is overloaded", 503)).code === "PROVIDER_ERROR", "503 → PROVIDER_ERROR");
 ok(toAIProviderError(e("API key not valid", 401)).code === "MISSING_API_KEY", "401 → MISSING_API_KEY");
 

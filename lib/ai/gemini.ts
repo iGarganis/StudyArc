@@ -289,7 +289,9 @@ export function toAIProviderError(err: unknown): AIProviderError {
 
   if (status === 429 || /quota|rate.?limit|resource_exhausted/i.test(message)) {
     // Daily/hard quota (or no free-tier allowance) → don't retry, tell the user.
-    if (/per.?day|requests?.?per.?day|limit:\s*0|billing|plan and billing/i.test(message)) {
+    // Don't match "billing": every 429 says "check your plan and billing details",
+    // including the per-minute ones that a retry can get past.
+    if (/per.?day|limit:\s*0/i.test(message)) {
       return new AIProviderError(
         "QUOTA_EXHAUSTED",
         "Gemini's daily free request limit is used up (or this model has no available quota). Try again later or check your plan and key.",
