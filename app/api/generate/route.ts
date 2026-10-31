@@ -40,15 +40,19 @@ export async function POST(req: NextRequest) {
 
   // 2) Generate study material (cache → queue → chunking → provider).
   try {
-    const { material, usageTokens } = await generateStudyMaterial({
-      documentText: extracted.text,
-      mode,
-      courseContext:
-        typeof courseContext === "string" ? courseContext : undefined,
-      covered,
-    });
+    const { material, usageTokens, cached } = await generateStudyMaterial(
+      {
+        documentText: extracted.text,
+        mode,
+        courseContext:
+          typeof courseContext === "string" ? courseContext : undefined,
+        covered,
+      },
+      { refresh: form.get("regenerate") === "1" },
+    );
     return NextResponse.json({
       material,
+      cached,
       meta: {
         totalPages: extracted.totalPages,
         charCount: extracted.charCount,

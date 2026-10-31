@@ -32,7 +32,13 @@ export const MODE_LIST: { id: Mode; label: string; blurb: string }[] = [
 ];
 
 export type Meta = { totalPages: number; charCount: number; title: string | null };
-export type Result = { material: GeneratedMaterial; meta: Meta; fileName: string };
+export type Result = {
+  material: GeneratedMaterial;
+  meta: Meta;
+  fileName: string;
+  /** The material already existed, so generating it used no Gemini request. */
+  fromCache?: boolean;
+};
 /** The generated material of one study, at most one per mode. */
 export type Panels = Partial<Record<Mode, Result>>;
 

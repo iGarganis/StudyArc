@@ -280,6 +280,8 @@ export default function Home() {
       // picks fresh concepts (unless the document has nothing left).
       const covered = extractCovered(panelsRef.current, mode);
       if (covered.length > 0) fd.append("covered", JSON.stringify(covered));
+      // Asking again for material you already have means you want a new version.
+      if (panelsRef.current[mode]) fd.append("regenerate", "1");
       const res = await fetch("/api/generate", { method: "POST", body: fd });
       const data = await res.json();
       recordUsage(data.usage?.totalTokens ?? 0);
@@ -292,6 +294,7 @@ export default function Home() {
         material: data.material,
         meta: data.meta,
         fileName: file.name,
+        fromCache: Boolean(data.cached),
       };
       // Add (or refresh) this mode's panel, keeping the others in place,
       // and fold it into this document's single session.

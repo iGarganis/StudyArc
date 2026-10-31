@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Download, RefreshCw, X } from "lucide-react";
+import { Check, Database, Download, RefreshCw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -129,6 +129,12 @@ export function ModeTabs({
                     <h2 className="text-xl font-semibold tracking-[-0.01em]">
                       <MathText text={result.material.title} />
                     </h2>
+                    {result.fromCache && (
+                      <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Database className="size-3.5 shrink-0" aria-hidden />
+                        Loaded from cache, no Gemini request used
+                      </p>
+                    )}
                     <p className="truncate text-muted-foreground">
                       {result.fileName}
                       {result.meta?.totalPages

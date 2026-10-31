@@ -11,6 +11,8 @@ import {
   CHUNK_THRESHOLD,
 } from "../lib/ai/chunking.ts";
 import { toAIProviderError } from "../lib/ai/gemini.ts";
+import { createClient } from "@supabase/supabase-js";
+import { SupabaseCache, createSupabaseCache } from "../lib/supabaseCache.ts";
 
 let failures = 0;
 const ok = (cond, name, extra = "") => {
@@ -115,6 +117,104 @@ const merged = await generateStudyMaterial({ documentText: big, mode: "summary" 
 ok(s.calls() >= 2, "chunking: huge doc → multiple provider calls", `calls=${s.calls()}`);
 ok(merged.material.mode === "summary" && merged.material.sections.length >= 2, "chunking: merged result spans chunks", `sections=${merged.material.sections.length}`);
 ok(merged.usageTokens >= 200, "chunking: usage tokens summed across chunks", `tokens=${merged.usageTokens}`);
+
+console.log("\n--- database cache ---");
+const fakeRemote = () => {
+  const rows = new Map();
+  return { rows, reads: 0, writes: 0, async get(k) { this.reads++; return rows.get(k); }, async set(k, v) { this.writes++; rows.set(k, v); } };
+};
+{
+  // No Gemini call when another server process already generated this document.
+  resetGenerationState();
+  let remote = fakeRemote();
+  s = stub();
+  const pD = { documentText: "doc-D", mode: "summary" };
+  const first = await generateStudyMaterial(pD, { provider: s.provider, remoteCache: remote });
+  ok(!first.cached && first.usageTokens === 100 && remote.writes === 1, "first request generates and stores");
+  resetGenerationState(); // what a server restart does to the memory cache
+  const second = await generateStudyMaterial(pD, { provider: s.provider, remoteCache: remote });
+  ok(second.cached && second.usageTokens === 0 && s.calls() === 1, "after a restart: served from the database", `calls=${s.calls()}`);
+  const readsBefore = remote.reads;
+  const third = await generateStudyMaterial(pD, { provider: s.provider, remoteCache: remote });
+  ok(third.cached && remote.reads === readsBefore, "then served from memory, without a database read");
+
+  // Regenerate replaces the stored copy.
+  const fresh = await generateStudyMaterial(pD, { provider: stub(() => sm("new")).provider, remoteCache: remote, refresh: true });
+  ok(!fresh.cached && fresh.material.title === "new", "refresh: skips the cached copy");
+  resetGenerationState();
+  const after = await generateStudyMaterial(pD, { provider: s.provider, remoteCache: remote });
+  ok(after.cached && after.material.title === "new", "refresh: replaces the stored copy");
+
+  // The order formats were generated in must not split the cache.
+  resetGenerationState();
+  remote = fakeRemote();
+  s = stub();
+  await generateStudyMaterial({ documentText: "doc-E", mode: "quiz", covered: ["a"] }, { provider: s.provider, remoteCache: remote });
+  const noCover = await generateStudyMaterial({ documentText: "doc-E", mode: "quiz" }, { provider: s.provider, remoteCache: remote });
+  ok(noCover.cached && s.calls() === 1, "covered concepts don't change the key");
+
+  // Bad or failing storage must never break generation.
+  resetGenerationState();
+  s = stub();
+  const wrong = { async get() { return el(); }, async set() {} };
+  const r1 = await generateStudyMaterial({ documentText: "doc-F", mode: "summary" }, { provider: s.provider, remoteCache: wrong });
+  ok(!r1.cached && r1.material.mode === "summary", "a stored row of the wrong mode is ignored");
+}
+{
+  const makeClient = (fetchImpl) => createClient("https://example.supabase.co", "sb_secret_test", {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { fetch: fetchImpl },
+  });
+  const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
+  const quiet = console.error;
+  const logs = [];
+  console.error = (m) => logs.push(String(m));
+
+  const seen = [];
+  const good = new SupabaseCache(makeClient(async (url, init) => {
+    seen.push({ url: String(url), method: init?.method, body: init?.body });
+    return init?.method === "POST" ? json(null, 201) : json({ material: sm("stored") });
+  }));
+  const got = await good.get("key-1");
+  ok(got?.title === "stored", "supabase: reads the material");
+  ok(seen[0].url.includes("material_cache") && seen[0].url.includes("cache_key=eq.key-1"), "supabase: queries by cache key", seen[0].url);
+  await good.set("key-2", sm());
+  const sent = JSON.parse(seen[1].body);
+  ok(seen[1].method === "POST" && sent.cache_key === "key-2" && sent.mode === "summary", "supabase: writes key, mode and material");
+
+  const empty = new SupabaseCache(makeClient(async () => new Response(JSON.stringify({ code: "PGRST116", message: "no rows" }), { status: 406, headers: { "content-type": "application/json" } })));
+  ok((await empty.get("none")) === undefined, "supabase: a missing row is a miss");
+
+  const down = new SupabaseCache(makeClient(async () => { throw new TypeError("fetch failed"); }));
+  ok((await down.get("k")) === undefined, "supabase: network failure on read is a miss");
+  await down.set("k", sm());
+  ok(true, "supabase: network failure on write doesn't throw");
+
+  const hanging = new SupabaseCache(makeClient((_, init) => new Promise((_, reject) => {
+    init.signal.addEventListener("abort", () => reject(init.signal.reason));
+  })), 50);
+  const started = Date.now();
+  // AbortSignal.timeout doesn't keep Node alive by itself; a server always is.
+  const keepAlive = setTimeout(() => {}, 5000);
+  const timedOut = await hanging.get("k");
+  clearTimeout(keepAlive);
+  ok(timedOut === undefined && Date.now() - started < 1000, "supabase: a paused database times out quickly", `${Date.now() - started}ms`);
+
+  const failing = new SupabaseCache(makeClient(async () => json({ message: "relation does not exist" }, 404)));
+  ok((await failing.get("k")) === undefined, "supabase: a missing table is a miss");
+  console.error = quiet;
+
+  ok(createSupabaseCache("", "") === null, "supabase: unconfigured → no database cache");
+  ok(logs.every((l) => !l.includes("sb_secret_test")), "supabase: the secret key never reaches the logs");
+
+  // End to end through generate: a broken database still gives a result.
+  resetGenerationState();
+  s = stub();
+  console.error = () => {};
+  const res = await generateStudyMaterial({ documentText: "doc-G", mode: "summary" }, { provider: s.provider, remoteCache: down });
+  console.error = quiet;
+  ok(!res.cached && s.calls() === 1 && res.material.mode === "summary", "generation still works with the database down");
+}
 
 console.log("\n--- toAIProviderError quota classification ---");
 const e = (msg, status) => Object.assign(new Error(msg), { status });

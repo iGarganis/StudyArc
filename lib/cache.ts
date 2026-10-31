@@ -1,9 +1,12 @@
 import { createHash } from "node:crypto";
 
-/**
- * Minimal cache interface so the in-memory store can be swapped for a durable
- * one (e.g. Supabase) later without touching callers.
- */
+/** A durable cache behind the network, such as a database. */
+export interface RemoteCache<T> {
+  get(key: string): Promise<T | undefined>;
+  set(key: string, value: T): Promise<void>;
+}
+
+/** A fast cache local to this server process. */
 export interface Cache<T> {
   get(key: string): T | undefined;
   set(key: string, value: T): void;

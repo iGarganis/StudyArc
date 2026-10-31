@@ -5,56 +5,104 @@ import type {
   GeneratedMaterial,
   GenerationResult,
 } from "./types.ts";
-import { InMemoryCache, cacheKey, type Cache } from "../cache.ts";
+import { InMemoryCache, cacheKey, type Cache, type RemoteCache } from "../cache.ts";
+import { createSupabaseCache } from "../supabaseCache.ts";
 import { generationQueue } from "./queue.ts";
 import { needsChunking, chunkText, mergeMaterials } from "./chunking.ts";
+import { buildPrompt } from "./prompts.ts";
 
-const materialCache: Cache<GeneratedMaterial> = new InMemoryCache();
+const memoryCache: Cache<GeneratedMaterial> = new InMemoryCache();
+const defaultRemoteCache = createSupabaseCache();
 // In-flight requests, so two identical concurrent calls share one generation.
-const inFlight = new Map<string, Promise<GenerationResult>>();
+const inFlight = new Map<string, Promise<GenerationOutcome>>();
+
+export interface GenerationOutcome extends GenerationResult {
+  /** True when no model call was made because the material already existed. */
+  cached: boolean;
+}
 
 export interface GenerateOptions {
   /** Inject a provider (tests / future backends). Defaults to getProvider(). */
   provider?: AIProvider;
   /** Cache + de-duplicate identical requests. Default true. */
   useCache?: boolean;
+  /** Skip the cached copy and replace it with a new generation (Regenerate). */
+  refresh?: boolean;
+  /** Inject a durable cache (tests). Defaults to Supabase, when configured. */
+  remoteCache?: RemoteCache<GeneratedMaterial> | null;
+}
+
+/**
+ * What makes two requests interchangeable. The prompt and model are included so
+ * that improving a prompt never serves material made with the old one. `covered`
+ * is deliberately left out: it depends on the order a user generated formats in,
+ * and including it would stop identical documents from sharing material.
+ */
+function requestKey(params: GenerateParams): string {
+  const { system } = buildPrompt(params.mode, { ...params, documentText: "", covered: undefined });
+  const model = process.env.GEMINI_MODEL?.trim() ?? "";
+  const context = params.courseContext?.trim() ?? "";
+  return cacheKey(params.documentText, params.mode, `${model}:${context}:${system}`);
 }
 
 /**
  * The single entry point callers (route, CLI) use. Adds, around the raw
- * provider: SHA-256 caching, concurrent de-duplication, a serializing queue,
- * and long-document chunking.
+ * provider: memory and database caching, concurrent de-duplication, a
+ * serializing queue, and long-document chunking.
  */
 export function generateStudyMaterial(
   params: GenerateParams,
   options: GenerateOptions = {},
-): Promise<GenerationResult> {
-  const provider = options.provider ?? getProvider();
+): Promise<GenerationOutcome> {
   const useCache = options.useCache ?? true;
-  // Coverage changes the output, so it must be part of the cache identity.
-  const coverageSalt = params.covered?.length ? params.covered.join("|") : "";
-  const key = cacheKey(params.documentText, params.mode, coverageSalt);
+  const remote = useCache
+    ? options.remoteCache === undefined
+      ? defaultRemoteCache
+      : options.remoteCache
+    : null;
+  const key = requestKey(params);
 
-  if (useCache) {
-    const cached = materialCache.get(key);
-    // A cache hit makes no API call, so it costs zero tokens.
-    if (cached) return Promise.resolve({ material: cached, usageTokens: 0 });
+  if (useCache && !options.refresh) {
     const pending = inFlight.get(key);
     if (pending) return pending;
   }
 
-  const promise = (async () => {
+  const promise = (async (): Promise<GenerationOutcome> => {
+    if (useCache && !options.refresh) {
+      const hit = await findCached(key, params, remote);
+      if (hit) return { material: hit, usageTokens: 0, cached: true };
+    }
+    const provider = options.provider ?? getProvider();
     const result = await generationQueue.run(() => produce(provider, params));
-    if (useCache) materialCache.set(key, result.material);
-    return result;
+    if (useCache) {
+      memoryCache.set(key, result.material);
+      await remote?.set(key, result.material);
+    }
+    return { ...result, cached: false };
   })();
 
   if (useCache) {
     inFlight.set(key, promise);
-    const clear = () => inFlight.delete(key);
+    const clear = () => {
+      if (inFlight.get(key) === promise) inFlight.delete(key);
+    };
     promise.then(clear, clear); // drop the in-flight entry once settled
   }
   return promise;
+}
+
+/** Look in memory first, then the database, keeping a database hit in memory. */
+async function findCached(
+  key: string,
+  params: GenerateParams,
+  remote: RemoteCache<GeneratedMaterial> | null,
+): Promise<GeneratedMaterial | undefined> {
+  const inMemory = memoryCache.get(key);
+  if (inMemory) return inMemory;
+  const stored = await remote?.get(key);
+  if (stored?.mode !== params.mode) return undefined;
+  memoryCache.set(key, stored);
+  return stored;
 }
 
 /** One document → one material, chunking + merging when the doc is huge. */
@@ -80,8 +128,8 @@ async function produce(
   return { material: mergeMaterials(params.mode, parts), usageTokens };
 }
 
-/** Test helper: wipe cache + in-flight state. */
+/** Test helper: wipe the memory cache + in-flight state. */
 export function resetGenerationState(): void {
-  materialCache.clear();
+  memoryCache.clear();
   inFlight.clear();
 }
