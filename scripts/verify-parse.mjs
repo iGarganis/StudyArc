@@ -85,5 +85,65 @@ ok(q.questions[0].difficulty === "medium", "quiz: bad difficulty -> medium", q.q
 ok(q.questions[1].difficulty === "hard", "quiz: valid difficulty kept");
 expectInvalid(() => parseQuiz({ title: "x", questions: [] }), "quiz: rejects empty questions");
 
+console.log("--- math delimiters ---");
+// The UI only renders $...$ and $...$.
+{
+  const d = parseSummary({
+    title: `Τίτλος ${BS}(x${BS})`,
+    sections: [
+      {
+        heading: "h",
+        content: `inline ${BS}(a + b${BS}) and display ${BS}[c${BS}] stay readable`,
+        keyFormulas: [
+          { latex: `${BS}(E = mc^2${BS})`, explanation: "wrapped" },
+          { latex: "$$F = ma$$", explanation: "wrapped in dollars" },
+          { latex: `a ${BS}${BS}[2pt] b`, explanation: "matrix row break" },
+        ],
+      },
+    ],
+    examTips: [],
+  });
+  ok(d.title === "Τίτλος $x$", "delims: inline converted in the title");
+  ok(
+    d.sections[0].content === "inline $a + b$ and display $$c$$ stay readable",
+    "delims: inline and display converted in prose",
+  );
+  ok(d.sections[0].keyFormulas[0].latex === "E = mc^2", "delims: stripped from a formula");
+  ok(d.sections[0].keyFormulas[1].latex === "F = ma", "delims: dollars stripped from a formula");
+  ok(
+    d.sections[0].keyFormulas[2].latex === `a ${BS}${BS}[2pt] b`,
+    "delims: a matrix row break is left alone",
+  );
+}
+
+console.log("--- over-escaping ---");
+{
+  const DBL = BS + BS;
+  const parsed = (content) =>
+    parseSummary({
+      title: "t",
+      sections: [{ heading: "h", content, keyFormulas: [] }],
+      examTips: [],
+    }).sections[0].content;
+
+  ok(
+    parsed(`a ${DBL}(${DBL}lambda${DBL}) b`) === `a $${BS}lambda$ b`,
+    "escape: doubled inline math is repaired",
+  );
+  ok(
+    parsed(`${DBL}[A ${DBL}cdot B${DBL}]`) === `$$A ${BS}cdot B$$`,
+    "escape: doubled display math is repaired",
+  );
+  ok(
+    parsed(`${DBL}(${DBL}begin{pmatrix} a ${DBL}${DBL} b ${DBL}end{pmatrix}${DBL})`) ===
+      `$${BS}begin{pmatrix} a ${DBL} b ${BS}end{pmatrix}$`,
+    "escape: a doubled matrix row break becomes a normal one",
+  );
+  const proper = `$${BS}begin{pmatrix} a ${DBL} b ${BS}end{pmatrix}$`;
+  ok(parsed(proper) === proper, "escape: a proper matrix is left alone");
+  const spaced = `$a ${DBL}[2pt] b$`;
+  ok(parsed(spaced) === spaced, "escape: a row break with spacing is left alone");
+}
+
 console.log(`\n${failures === 0 ? "ALL GREEN" : failures + " FAILURE(S)"}`);
 process.exitCode = failures === 0 ? 0 : 1;

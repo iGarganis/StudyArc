@@ -1,6 +1,6 @@
 # StudyArc
 
-Ανέβασε ένα PDF διάλεξης (στα ελληνικά) και πάρε **σύνοψη**, **απλή εξήγηση** και **quiz** — όλα στα ελληνικά. Week-1 MVP, εστιασμένο στην ποιότητα του pipeline.
+Upload a lecture PDF and get a **summary**, **simple explanation**, **quiz**, **true/false set** and **flashcards**, generated in the language of the document.
 
 ## Setup
 
@@ -18,7 +18,7 @@ PDF → text (`unpdf`) → Gemini (`@google/genai`, JSON mode) → validated typ
 
 - **Provider-agnostic core** — `lib/ai/provider.ts` exposes `getProvider()`; `GeminiProvider` is the only place the SDK lives, so another backend (e.g. Groq) drops in by implementing one interface, with no caller changes.
 - **Resilience** — a serializing request queue, retry with exponential backoff + jitter on transient 5xx/429, a SHA-256 cache with concurrent de-duplication, and long-document chunking.
-- **Greek + LaTeX** — prompts force Greek output and valid LaTeX (`$...$` / `$$...$$`, never Unicode math); a validation repair pass fixes the model's occasional JSON-escaping slips.
+- **Language + LaTeX** — material follows the document's language, with math as valid LaTeX (`$...$` / `$$...$$`, never Unicode math); a validation pass repairs the model's occasional JSON-escaping slips and normalises `\(...\)` / `\[...\]` delimiters.
 
 ## CLI — iterate on prompt quality without the UI
 
@@ -40,10 +40,10 @@ node scripts/verify-step4.mjs     # queue / cache / chunking / quota routing (26
 ## Layout
 
 ```
-lib/pdf.ts            PDF → text, with Greek errors (empty / corrupt / scanned)
+lib/pdf.ts            PDF → text, with typed errors (empty / corrupt / scanned)
 lib/ai/
   types.ts            material types + AIProvider interface + AIProviderError
-  prompts.ts          Greek system prompts (per mode)
+  prompts.ts          system prompts (per mode)
   gemini.ts           GeminiProvider — the only file importing the SDK
   validate.ts         JSON → typed material (+ LaTeX-escape repair)
   retry.ts queue.ts chunking.ts   resilience layer
@@ -58,5 +58,5 @@ samples/              your PDFs (git-ignored)
 ## Notes
 
 - **Free tier:** ~15 req/min, ~1,500 req/day on `gemini-2.5-flash`. During Google demand spikes you may see transient `503`s — the retry layer absorbs them.
-- **UI:** shadcn/ui with the Zinc theme, Inter (Greek + Latin), no motion, and a light/dark toggle (persisted in `localStorage`). The design source is `docs/design/studybox-redesign.html`.
+- **UI:** shadcn/ui with the Zinc theme, Inter (Latin + Greek, for generated material), no motion, and a light/dark toggle (persisted in `localStorage`). The design source is `docs/design/studybox-redesign.html`.
 - No database or auth yet: results cache in-memory (server) and persist to `localStorage` (client).

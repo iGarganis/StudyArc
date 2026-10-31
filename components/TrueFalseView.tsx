@@ -38,7 +38,7 @@ export function TrueFalseView({
         score={score}
         answered={answered}
         total={data.questions.length}
-        progressLabel="Απαντημένες δηλώσεις"
+        progressLabel="Answered statements"
       />
 
       {data.questions.map((q, qi) => {
@@ -54,7 +54,7 @@ export function TrueFalseView({
           >
             <div
               role="group"
-              aria-label={`Απάντηση δήλωσης ${qi + 1}`}
+              aria-label={`Statement ${qi + 1} answer`}
               className="grid grid-cols-2 gap-2"
             >
               {([true, false] as const).map((value) => {
@@ -72,15 +72,15 @@ export function TrueFalseView({
                     state={state}
                     tag={
                       state === "wrong"
-                        ? "Η απάντησή σας"
+                        ? "Your answer"
                         : isChosen
-                          ? "Σωστή · Η απάντησή σας"
-                          : "Σωστή"
+                          ? "Correct · Your answer"
+                          : "Correct"
                     }
                     onClick={() => pick(qi, value)}
                     className="font-medium"
                   >
-                    {value ? "Σωστό" : "Λάθος"}
+                    {value ? "True" : "False"}
                   </AnswerButton>
                 );
               })}
@@ -89,8 +89,8 @@ export function TrueFalseView({
             {locked && (
               <Explanation>
                 <p className="font-semibold">
-                  {correct ? "Απαντήσατε σωστά." : "Η απάντησή σας ήταν λάθος."}{" "}
-                  Η δήλωση είναι {q.answer ? "σωστή" : "λάθος"}.
+                  {correct ? "You answered correctly." : "Your answer was wrong."}{" "}
+                  The statement is {q.answer ? "true" : "false"}.
                 </p>
                 <p>
                   <MathText text={q.explanation} />

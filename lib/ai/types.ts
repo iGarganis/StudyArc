@@ -27,7 +27,7 @@ export function isMode(value: unknown): value is Mode {
 
 // ---------- Summary ----------
 
-/** A formula worth memorising, with a one-line plain-Greek explanation. */
+/** A formula worth memorising, with a one-line plain-language explanation. */
 export interface KeyFormula {
   /** LaTeX WITHOUT surrounding $ delimiters. */
   latex: string;
@@ -82,12 +82,12 @@ export interface QuizMaterial {
   questions: QuizQuestion[];
 }
 
-// ---------- True / False (Σωστό / Λάθος) ----------
+// ---------- True / False ----------
 
 export interface TrueFalseQuestion {
   /** A statement the student judges as true or false. */
   statement: string;
-  /** true → Σωστό, false → Λάθος. */
+  /** true → the statement is true, false → it is false. */
   answer: boolean;
   /** Why the statement is true or false. */
   explanation: string;
@@ -100,7 +100,7 @@ export interface TrueFalseMaterial {
   questions: TrueFalseQuestion[];
 }
 
-// ---------- Flashcards (Κάρτες) ----------
+// ---------- Flashcards ----------
 
 export interface FlashcardCard {
   /** The prompt side — a term, question, or concept to recall. */
@@ -162,7 +162,7 @@ export type AIErrorCode =
   | "INVALID_RESPONSE"
   | "PROVIDER_ERROR";
 
-/** Provider-agnostic error carrying a Greek, UI-safe `userMessage`. */
+/** Provider-agnostic error carrying a UI-safe `userMessage`. */
 export class AIProviderError extends Error {
   readonly code: AIErrorCode;
   readonly userMessage: string;

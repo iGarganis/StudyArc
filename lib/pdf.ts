@@ -4,7 +4,7 @@ export type PdfErrorCode = "EMPTY_FILE" | "CORRUPT_PDF" | "NO_TEXT";
 
 /**
  * Thrown for any problem turning an uploaded file into usable text.
- * `userMessage` is Greek and safe to show directly in the UI.
+ * `userMessage` is safe to show directly in the UI.
  */
 export class PdfExtractionError extends Error {
   readonly code: PdfErrorCode;
@@ -41,7 +41,7 @@ export async function extractPdfText(
   if (bytes.byteLength === 0) {
     throw new PdfExtractionError(
       "EMPTY_FILE",
-      "Το αρχείο είναι κενό. Ανέβασε ένα έγκυρο PDF.",
+      "The file is empty. Upload a valid PDF.",
     );
   }
 
@@ -52,7 +52,7 @@ export async function extractPdfText(
   } catch {
     throw new PdfExtractionError(
       "CORRUPT_PDF",
-      "Δεν ήταν δυνατή η ανάγνωση του PDF. Μπορεί να είναι κατεστραμμένο ή κλειδωμένο με κωδικό.",
+      "The PDF could not be read. It may be corrupt or password protected.",
     );
   }
 
@@ -65,7 +65,7 @@ export async function extractPdfText(
   } catch {
     throw new PdfExtractionError(
       "CORRUPT_PDF",
-      "Παρουσιάστηκε σφάλμα κατά την ανάγνωση του περιεχομένου του PDF.",
+      "An error occurred while reading the PDF's content.",
     );
   }
 
@@ -74,8 +74,8 @@ export async function extractPdfText(
   if (text.replace(/\s/g, "").length < MIN_MEANINGFUL_CHARS) {
     throw new PdfExtractionError(
       "NO_TEXT",
-      "Δεν βρέθηκε επιλέξιμο κείμενο σε αυτό το PDF. Πιθανότατα είναι σαρωμένο (εικόνες σελίδων). " +
-        "Δοκίμασε ένα PDF όπου μπορείς να επιλέξεις το κείμενο με το ποντίκι.",
+      "No selectable text was found in this PDF. It is probably scanned (images of pages). " +
+        "Try a PDF whose text you can select with the mouse.",
     );
   }
 

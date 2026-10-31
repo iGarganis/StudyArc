@@ -13,11 +13,11 @@ import { DIFFICULTY_LABEL, optionLetter as letter } from "@/lib/study";
  */
 
 const MODE_LABEL: Record<Mode, string> = {
-  summary: "Σύνοψη",
-  eli5: "Απλή εξήγηση",
+  summary: "Summary",
+  eli5: "Simple explanation",
   quiz: "Quiz",
-  truefalse: "Σωστό / Λάθος",
-  flashcards: "Κάρτες",
+  truefalse: "True / False",
+  flashcards: "Flashcards",
 };
 
 function escapeHtml(s: string): string {
@@ -92,7 +92,7 @@ function bodyHtml(material: GeneratedMaterial): string {
         .join("");
       const tips =
         material.examTips.length > 0
-          ? `<section><h2>Συμβουλές για την εξέταση</h2><ul>` +
+          ? `<section><h2>Exam tips</h2><ul>` +
             material.examTips.map((t) => `<li>${mathToHtml(t)}</li>`).join("") +
             `</ul></section>`
           : "";
@@ -102,7 +102,7 @@ function bodyHtml(material: GeneratedMaterial): string {
     case "eli5": {
       const analogies =
         material.analogies.length > 0
-          ? `<section><h2>Αναλογίες</h2>` +
+          ? `<section><h2>Analogies</h2>` +
             material.analogies
               .map(
                 (a) =>
@@ -126,7 +126,7 @@ function bodyHtml(material: GeneratedMaterial): string {
               return (
                 `<div class="o${correct ? " c" : ""}">` +
                 `<span class="l">${letter(oi)}</span><span class="otext">${mathToHtml(opt)}</span>` +
-                `${correct ? '<span class="mk">✓ Σωστή</span>' : ""}</div>`
+                `${correct ? '<span class="mk">✓ Correct</span>' : ""}</div>`
               );
             })
             .join("");
@@ -141,7 +141,7 @@ function bodyHtml(material: GeneratedMaterial): string {
       return (
         titleHtml(
           material.title,
-          `${material.questions.length} ερωτήσεις · η σωστή επιλογή είναι σημειωμένη με ✓ και ακολουθεί η εξήγησή της`,
+          `${material.questions.length} questions · the correct option is marked with ✓ and followed by its explanation`,
         ) + qs
       );
     }
@@ -152,14 +152,14 @@ function bodyHtml(material: GeneratedMaterial): string {
           (q, qi) =>
             `<div class="item print-item">` +
             questionRow(qi + 1, q.statement, DIFFICULTY_LABEL[q.difficulty]) +
-            `<p class="tfa">Απάντηση: ${q.answer ? "Σωστό" : "Λάθος"}</p>` +
+            `<p class="tfa">Answer: ${q.answer ? "True" : "False"}</p>` +
             `<p class="ex">${mathToHtml(q.explanation)}</p></div>`,
         )
         .join("");
       return (
         titleHtml(
           material.title,
-          `${material.questions.length} δηλώσεις · με απάντηση και εξήγηση`,
+          `${material.questions.length} statements · with answer and explanation`,
         ) + qs
       );
     }
@@ -175,9 +175,9 @@ function bodyHtml(material: GeneratedMaterial): string {
       return (
         titleHtml(
           material.title,
-          `${material.cards.length} κάρτες · μπροστινή και πίσω όψη`,
+          `${material.cards.length} cards · front and back`,
         ) +
-        `<table class="cards"><thead><tr><th>#</th><th>Μπροστινή όψη</th><th>Πίσω όψη</th></tr></thead>` +
+        `<table class="cards"><thead><tr><th>#</th><th>Front</th><th>Back</th></tr></thead>` +
         `<tbody>${rows}</tbody></table>`
       );
     }
@@ -252,7 +252,7 @@ function buildPrintDoc(material: GeneratedMaterial, fileName: string): string {
     `if(document.fonts&&document.fonts.ready){document.fonts.ready.then(function(){setTimeout(go,60);});}` +
     `else{setTimeout(go,300);}};`;
   return (
-    `<!doctype html><html lang="el"><head><meta charset="utf-8">` +
+    `<!doctype html><html lang="en"><head><meta charset="utf-8">` +
     `<title>${escapeHtml(fileName)} — ${label}</title>` +
     `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">` +
     `<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.17.0/dist/katex.min.css">` +

@@ -14,7 +14,7 @@ export function Eli5View({ data }: { data: Eli5Material }) {
         <>
           <Separator />
           <section className="flex flex-col gap-3 pt-6 text-base">
-            <h3 className="text-base leading-6 font-semibold">Αναλογίες</h3>
+            <h3 className="text-base leading-6 font-semibold">Analogies</h3>
             {data.analogies.map((a, i) => (
               <p key={i}>
                 <span className="font-medium">

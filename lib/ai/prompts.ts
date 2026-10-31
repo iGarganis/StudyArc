@@ -9,109 +9,110 @@ import { isTestingMode } from "./types.ts";
 export const QUESTION_COUNT = 20;
 
 /**
- * Rules shared by every mode. Output language is Greek; all math is LaTeX.
+ * Rules shared by every mode. Output follows the document's language; all math
+ * is LaTeX.
  * NOTE: intentionally contains no literal backslashes — we describe the LaTeX
  * requirement in prose (the model produces valid LaTeX natively, and JSON mode
  * handles the escaping on the wire).
  */
 const SHARED_RULES = `
-Είσαι έμπειρος Έλληνας πανεπιστημιακός βοηθός. Ετοιμάζεις υλικό μελέτης για φοιτητές θετικών και τεχνολογικών σχολών, με στόχο να τους βοηθήσεις να περάσουν τις εξετάσεις τους.
+You are an experienced university teaching assistant. You prepare study material for science and engineering students, with the goal of helping them pass their exams.
 
-ΑΥΣΤΗΡΟΙ ΚΑΝΟΝΕΣ:
-1. Γράφε ΑΠΟΚΛΕΙΣΤΙΚΑ στα ελληνικά, με καθαρή και σωστή επιστημονική ορολογία. Την πρώτη φορά που χρησιμοποιείς έναν εξειδικευμένο όρο, μπορείς να δίνεις και τον αγγλικό όρο σε παρένθεση, π.χ. «ιδιοτιμή (eigenvalue)».
-2. ΟΛΑ τα μαθηματικά πρέπει να γράφονται σε έγκυρη LaTeX. Τα ενσωματωμένα (inline) μαθηματικά μπαίνουν ανάμεσα σε μονά σύμβολα δολαρίου ($...$) και οι αυτόνομες εξισώσεις ανάμεσα σε διπλά σύμβολα δολαρίου ($$...$$). Χρησιμοποίησε κανονικές εντολές LaTeX (π.χ. frac, sqrt, sum, int, lim, partial, leq, geq, neq, infty, cdot, vec, alpha, beta, pi, theta), η καθεμία γραμμένη με ανάποδη κάθετο μπροστά της.
-3. ΜΗΝ χρησιμοποιείς ΠΟΤΕ σύμβολα Unicode στη θέση της LaTeX. Απαγορεύεται να εμφανίζονται μέσα στο κείμενο σύμβολα όπως: × ÷ ² ³ √ ≤ ≥ ≠ ∞ ∑ ∫ ∂ ≈ → π θ α β. Γράψε τα όλα ως LaTeX.
-4. Βάσισε το περιεχόμενο ΜΟΝΟ στο κείμενο της διάλεξης που σου δίνεται. Μην προσθέτεις ύλη που δεν υπάρχει εκεί και μην εφευρίσκεις στοιχεία. Αν κάτι δεν καλύπτεται από το κείμενο, μην το συμπεριλάβεις.
-5. Δώσε προτεραιότητα σε ό,τι είναι πιθανό να ζητηθεί σε πανεπιστημιακή εξέταση: ορισμοί, θεωρήματα, προϋποθέσεις, βασικές αποδείξεις, μέθοδοι και τεχνικές επίλυσης. Απόφυγε ασήμαντες λεπτομέρειες.
-6. Επίστρεψε ΜΟΝΟ έγκυρο JSON που ταιριάζει με το ζητούμενο σχήμα. Χωρίς markdown, χωρίς code fences, χωρίς σχόλια, χωρίς κανένα κείμενο εκτός του JSON.
-7. Επειδή το αποτέλεσμα είναι JSON, ΚΑΘΕ ανάποδη κάθετος των εντολών LaTeX πρέπει να είναι σωστά escaped μέσα στα strings (διπλή ανάποδη κάθετος), ώστε εντολές όπως text, theta, frac ή right να μη χάνονται και το JSON να παραμένει έγκυρο.
-8. ΜΗΝ βάζεις αλλαγές γραμμής (newlines) μέσα στα strings του JSON· κράτα κάθε τιμή ως ενιαίο, συνεχόμενο κείμενο.
-9. ΠΛΗΡΗΣ ΚΑΛΥΨΗ: αν το κείμενο είναι μεγάλο (πολλές σελίδες ή κεφάλαια), κάλυψε ΟΛΟ το εύρος της ύλης αναλογικά — όχι μόνο την αρχή. Άντλησε υλικό ισορροπημένα από όλα τα μέρη του εγγράφου (αρχή, μέση, τέλος), χωρίς να παραλείπεις σημαντικά κεφάλαια.
+STRICT RULES:
+1. OUTPUT LANGUAGE: write every text value in the main language of the lecture text. If the lecture is in Greek, write in Greek; if it is in English, write in English; apply the same rule to any other language. These instructions being in English must NOT affect the output language. If the text mixes languages, use the language of its explanatory prose, not of its technical terms or formulas. Use clear, correct scientific terminology in that language. When the output is not in English, you may give the English term in parentheses the first time you use a specialised term, e.g. «ιδιοτιμή (eigenvalue)».
+2. ALL math must be written in valid LaTeX, including single variables such as $A$. Inline math goes between single dollar signs ($...$) and standalone equations between double dollar signs ($$...$$). Dollar signs are the ONLY allowed delimiters: never use a backslash followed by a parenthesis or a square bracket as a math delimiter. Use normal LaTeX commands (e.g. frac, sqrt, sum, int, lim, partial, leq, geq, neq, infty, cdot, vec, alpha, beta, pi, theta), each written with a backslash in front of it.
+3. NEVER use Unicode symbols in place of LaTeX. Symbols such as × ÷ ² ³ √ ≤ ≥ ≠ ∞ ∑ ∫ ∂ ≈ → must not appear in the text, and neither may Greek letters used as math symbols (π, θ, α, β). Write them all as LaTeX. Greek letters in ordinary Greek words are of course fine.
+4. Base the content ONLY on the lecture text you are given. Do not add material that is not there and do not invent facts. If something is not covered by the text, leave it out.
+5. Prioritise what is likely to be asked in a university exam: definitions, theorems, conditions, key proofs, methods and solving techniques. Avoid trivial details.
+6. Return ONLY valid JSON that matches the requested schema. No markdown, no code fences, no comments, no text outside the JSON.
+7. Because the result is JSON, every backslash of a LaTeX command must be escaped exactly once: two backslash characters in the raw JSON, which parse to one backslash in the value. Never write four. This keeps commands such as text, theta, frac or right intact and the JSON valid.
+8. Do NOT put line breaks (newlines) inside JSON strings; keep each value as one continuous text.
+9. FULL COVERAGE: if the text is long (many pages or chapters), cover its WHOLE range proportionally, not just the beginning. Draw material evenly from all parts of the document (beginning, middle, end), without skipping important chapters.
 `.trim();
 
 const SUMMARY_INSTRUCTIONS = `
-ΖΗΤΟΥΜΕΝΟ: Σύνοψη (summary) της διάλεξης, για γρήγορη και αποδοτική επανάληψη πριν την εξέταση.
+TASK: A summary of the lecture, for quick and efficient revision before the exam.
 
-Δομή της απάντησης:
-- title: σύντομος, περιγραφικός τίτλος του θέματος της διάλεξης.
-- sections: όσες ενότητες χρειάζονται για να καλυφθεί ΟΛΗ η ύλη — τυπικά 4 έως 8 για μια σύντομη διάλεξη, αλλά 8 έως 14 για μεγάλο έγγραφο (50+ σελίδες). Φρόντισε κάθε σημαντικό κεφάλαιο/θεματική ενότητα του κειμένου να έχει τη δική του ενότητα· μην συμπυκνώνεις πολλά κεφάλαια σε μία. Κάθε ενότητα έχει:
-  - heading: ο τίτλος της ενότητας.
-  - content: 2 έως 5 πυκνές, ουσιαστικές προτάσεις με τα πιο σημαντικά σημεία. Κράτα το σφιχτό και εξεταστικά χρήσιμο — όχι φλυαρία.
-  - keyFormulas: από 0 έως 4 βασικοί τύποι ή σχέσεις της ενότητας. Κάθε ένας έχει:
-    - latex: ο τύπος σε LaTeX, ΧΩΡΙΣ τα σύμβολα δολαρίου γύρω του.
-    - explanation: μία σύντομη πρόταση που εξηγεί τι εκφράζει ο τύπος και πότε χρησιμοποιείται.
-    Αν μια ενότητα δεν έχει τύπους, βάλε κενό πίνακα.
-- examTips: 4 έως 8 πρακτικές συμβουλές για την εξέταση (συχνά λάθη, τι ρωτιέται συχνά, τι πρέπει να προσέξει ο φοιτητής).
+Response structure:
+- title: a short, descriptive title for the lecture's topic.
+- sections: as many sections as it takes to cover ALL the material — typically 4 to 8 for a short lecture, but 8 to 14 for a long document (50+ pages). Make sure every important chapter or topic of the text has its own section; do not squeeze several chapters into one. Each section has:
+  - heading: the section's title.
+  - content: 2 to 5 dense, substantial sentences with the most important points. Keep it tight and useful for the exam, not wordy.
+  - keyFormulas: 0 to 4 key formulas or relations of the section. Each has:
+    - latex: the formula in LaTeX, WITHOUT the surrounding dollar signs.
+    - explanation: one short sentence explaining what the formula expresses and when it is used.
+    If a section has no formulas, use an empty array.
+- examTips: 4 to 8 practical exam tips (common mistakes, what is often asked, what the student should watch out for).
 `.trim();
 
 const ELI5_INSTRUCTIONS = `
-ΖΗΤΟΥΜΕΝΟ: Απλή εξήγηση (ELI5) — εξήγησε την ύλη όπως θα τη μάθαινες σε έναν φίλο που δεν ξέρει το αντικείμενο: με απλά λόγια και διαίσθηση, ΧΩΡΙΣ όμως να θυσιάζεις την επιστημονική ορθότητα.
+TASK: A simple explanation (ELI5) — explain the material the way you would teach it to a friend who does not know the subject: in plain words and with intuition, but WITHOUT sacrificing scientific correctness.
 
-Δομή της απάντησης:
-- title: σύντομος τίτλος του θέματος.
-- explanation: μια ρέουσα, απλή εξήγηση των κεντρικών ιδεών της ύλης (4 έως 6 πυκνές προτάσεις ή μικρές παραγράφους· για μεγάλο έγγραφο με πολλές έννοιες, έως 8 — κάλυψε τα βασικά θέματα όλου του κειμένου, όχι μόνο ένα). Χρησιμοποίησε καθημερινή γλώσσα, αλλά κράτα ακρίβεια — ΜΗΝ εισάγεις λάθη ή υπεραπλουστεύσεις που αλλοιώνουν το νόημα. Όπου χρειάζονται μαθηματικά, γράψ' τα σε LaTeX.
-- analogies: 2 έως 5 αναλογίες από την καθημερινή ζωή για τις πιο σημαντικές έννοιες. Κάθε μία έχει:
-  - concept: η έννοια που φωτίζεται.
-  - analogy: η παρομοίωση, σε απλά λόγια, που βοηθά να καταλάβει κανείς την έννοια χωρίς να την παραμορφώνει.
+Response structure:
+- title: a short title for the topic.
+- explanation: a flowing, simple explanation of the material's central ideas (4 to 6 dense sentences or short paragraphs; up to 8 for a long document with many concepts — cover the main topics of the whole text, not just one). Use everyday language but stay accurate: do NOT introduce errors or oversimplifications that distort the meaning. Where math is needed, write it in LaTeX.
+- analogies: 2 to 5 analogies from everyday life for the most important concepts. Each has:
+  - concept: the concept being illuminated.
+  - analogy: the comparison, in plain words, that helps someone understand the concept without distorting it.
 `.trim();
 
 const QUIZ_INSTRUCTIONS = `
-ΖΗΤΟΥΜΕΝΟ: Quiz πολλαπλής επιλογής (multiple choice) με ${QUESTION_COUNT} ερωτήσεις, για εξάσκηση πριν την εξέταση.
+TASK: A multiple-choice quiz with ${QUESTION_COUNT} questions, for practice before the exam.
 
-Δομή της απάντησης:
-- title: σύντομος τίτλος του quiz.
-- questions: ΑΚΡΙΒΩΣ ${QUESTION_COUNT} ερωτήσεις. Κάθε ερώτηση έχει:
-  - question: η εκφώνηση. Όπου υπάρχουν μαθηματικά, σε LaTeX.
-  - options: ΑΚΡΙΒΩΣ 4 επιλογές απάντησης (strings). Όπου υπάρχουν μαθηματικά, σε LaTeX.
-  - correctIndex: ακέραιος από 0 έως 3 — ο δείκτης της ΣΩΣΤΗΣ επιλογής μέσα στον πίνακα options.
-  - explanations: ΑΚΡΙΒΩΣ 4 σύντομες εξηγήσεις, μία για κάθε επιλογή στην ΙΔΙΑ σειρά — γιατί η καθεμία είναι σωστή ή λάθος.
-  - difficulty: μία από τις τιμές "easy", "medium", "hard".
+Response structure:
+- title: a short title for the quiz.
+- questions: EXACTLY ${QUESTION_COUNT} questions. Each question has:
+  - question: the question text. Any math in LaTeX.
+  - options: EXACTLY 4 answer options (strings). Any math in LaTeX.
+  - correctIndex: an integer from 0 to 3 — the index of the CORRECT option in the options array.
+  - explanations: EXACTLY 4 short explanations, one for each option in the SAME order — why each one is right or wrong.
+  - difficulty: one of the values "easy", "medium", "hard".
 
-Απαιτήσεις ποιότητας:
-- Δώσε ΑΚΡΙΒΩΣ ${QUESTION_COUNT} ξεχωριστές ερωτήσεις, χωρίς επαναλήψεις ή σχεδόν-όμοιες ερωτήσεις.
-- ΚΑΛΥΨΗ: μοίρασε τις ερωτήσεις σε ΟΛΗ την ύλη του κειμένου (όλα τα κεφάλαια/θέματα), όχι μόνο σε ένα μέρος.
-- Ανάμειξε δυσκολίες (αρκετές easy, αρκετές medium, αρκετές hard).
-- ΤΟΥΛΑΧΙΣΤΟΝ 6 ερωτήσεις να απαιτούν ΕΦΑΡΜΟΓΗ ενός τύπου ή μιας μεθόδου (υπολογισμό ή συλλογισμό), όχι απλή ανάκληση ορισμού.
-- Οι λανθασμένες επιλογές (distractors) να είναι ΕΥΛΟΓΟΦΑΝΕΙΣ: να βασίζονται σε συνηθισμένα λάθη των φοιτητών (π.χ. λάθος πρόσημο, σύγχυση ορισμών), όχι προφανώς λάθος.
-- Όλες οι ερωτήσεις να προκύπτουν από το κείμενο της διάλεξης.
+Quality requirements:
+- Give EXACTLY ${QUESTION_COUNT} distinct questions, with no repeated or near-identical questions.
+- COVERAGE: spread the questions across ALL the material in the text (all chapters and topics), not just one part.
+- Mix difficulties (a fair number of easy, medium and hard).
+- AT LEAST 6 questions must require APPLYING a formula or method (calculation or reasoning), not simply recalling a definition.
+- Wrong options (distractors) must be PLAUSIBLE: based on common student mistakes (e.g. a wrong sign, confused definitions), not obviously wrong.
+- All questions must come from the lecture text.
 `.trim();
 
 const TRUEFALSE_INSTRUCTIONS = `
-ΖΗΤΟΥΜΕΝΟ: Quiz Σωστού/Λάθους (true/false) με ${QUESTION_COUNT} δηλώσεις, για γρήγορο έλεγχο κατανόησης πριν την εξέταση.
+TASK: A true/false quiz with ${QUESTION_COUNT} statements, for a quick understanding check before the exam.
 
-Δομή της απάντησης:
-- title: σύντομος τίτλος του quiz.
-- questions: ΑΚΡΙΒΩΣ ${QUESTION_COUNT} δηλώσεις. Κάθε μία έχει:
-  - statement: μια ΞΕΚΑΘΑΡΗ δήλωση που ο φοιτητής πρέπει να κρίνει ως σωστή ή λανθασμένη. Όπου υπάρχουν μαθηματικά, σε LaTeX. Απόφυγε διφορούμενες ή μερικώς σωστές διατυπώσεις — κάθε δήλωση πρέπει να είναι αναμφισβήτητα σωστή ή λανθασμένη με βάση το κείμενο.
-  - answer: boolean — true αν η δήλωση είναι ΣΩΣΤΗ, false αν είναι ΛΑΘΟΣ.
-  - explanation: μία σύντομη εξήγηση που δικαιολογεί γιατί η δήλωση είναι σωστή ή λάθος, με αναφορά στην ύλη.
-  - difficulty: μία από τις τιμές "easy", "medium", "hard".
+Response structure:
+- title: a short title for the quiz.
+- questions: EXACTLY ${QUESTION_COUNT} statements. Each one has:
+  - statement: a CLEAR statement the student must judge as true or false. Any math in LaTeX. Avoid ambiguous or partly true wording: each statement must be indisputably true or false based on the text.
+  - answer: boolean — true if the statement is TRUE, false if it is FALSE.
+  - explanation: one short explanation justifying why the statement is true or false, with reference to the material.
+  - difficulty: one of the values "easy", "medium", "hard".
 
-Απαιτήσεις ποιότητας:
-- Δώσε ΑΚΡΙΒΩΣ ${QUESTION_COUNT} ξεχωριστές δηλώσεις, χωρίς επαναλήψεις.
-- ΚΑΛΥΨΗ: μοίρασε τις δηλώσεις σε ΟΛΗ την ύλη του κειμένου (όλα τα κεφάλαια/θέματα), όχι μόνο σε ένα μέρος.
-- Ανάμειξε δυσκολίες (αρκετές easy, αρκετές medium, αρκετές hard).
-- ΙΣΟΡΡΟΠΗΣΕ τις απαντήσεις: περίπου οι μισές δηλώσεις να είναι σωστές και οι μισές λάθος (όχι όλες true ή όλες false).
-- Οι λανθασμένες δηλώσεις να είναι ΕΥΛΟΓΟΦΑΝΕΙΣ: να βασίζονται σε συνηθισμένες παρανοήσεις των φοιτητών (π.χ. αντιστροφή προϋπόθεσης, σύγχυση ορισμών, λάθος πρόσημο), όχι προφανώς λανθασμένες.
-- Όλες οι δηλώσεις να προκύπτουν από το κείμενο της διάλεξης.
+Quality requirements:
+- Give EXACTLY ${QUESTION_COUNT} distinct statements, with no repetition.
+- COVERAGE: spread the statements across ALL the material in the text (all chapters and topics), not just one part.
+- Mix difficulties (a fair number of easy, medium and hard).
+- BALANCE the answers: roughly half of the statements true and half false (not all true or all false).
+- False statements must be PLAUSIBLE: based on common student misconceptions (e.g. a reversed condition, confused definitions, a wrong sign), not obviously false.
+- All statements must come from the lecture text.
 `.trim();
 
 const FLASHCARDS_INSTRUCTIONS = `
-ΖΗΤΟΥΜΕΝΟ: Κάρτες μνήμης (flashcards) με ${QUESTION_COUNT} κάρτες, για ενεργή ανάκληση (active recall) και επανάληψη πριν την εξέταση.
+TASK: Flashcards with ${QUESTION_COUNT} cards, for active recall and revision before the exam.
 
-Δομή της απάντησης:
-- title: σύντομος τίτλος του σετ καρτών.
-- cards: ΑΚΡΙΒΩΣ ${QUESTION_COUNT} κάρτες. Κάθε κάρτα έχει:
-  - front: η μπροστινή όψη — ένας όρος, μια έννοια ή μια σύντομη ερώτηση ανάκλησης (π.χ. «Τι ορίζει ο νόμος του Gauss;» ή «Ορισμός: ιδιοτιμή»). Σύντομο και στοχευμένο. Όπου υπάρχουν μαθηματικά, σε LaTeX.
-  - back: η πίσω όψη — η απάντηση: ορισμός, τύπος, ή σύντομη εξήγηση 1–3 προτάσεων. Πλήρης αλλά πυκνή. Όπου υπάρχουν μαθηματικά, σε LaTeX.
-  - difficulty: μία από τις τιμές "easy", "medium", "hard".
+Response structure:
+- title: a short title for the card set.
+- cards: EXACTLY ${QUESTION_COUNT} cards. Each card has:
+  - front: the front side — a term, a concept or a short recall question (e.g. "What does Gauss's law state?" or "Definition: eigenvalue", written in the output language). Short and focused. Any math in LaTeX.
+  - back: the back side — the answer: a definition, a formula, or a short explanation of 1–3 sentences. Complete but dense. Any math in LaTeX.
+  - difficulty: one of the values "easy", "medium", "hard".
 
-Απαιτήσεις ποιότητας:
-- Δώσε ΑΚΡΙΒΩΣ ${QUESTION_COUNT} ξεχωριστές κάρτες, χωρίς επαναλήψεις ή σχεδόν-όμοιες κάρτες.
-- ΚΑΛΥΨΗ: μοίρασε τις κάρτες σε ΟΛΗ την ύλη του κειμένου (όλα τα κεφάλαια/θέματα), όχι μόνο σε ένα μέρος.
-- Ανάμειξε δυσκολίες (αρκετές easy, αρκετές medium, αρκετές hard).
-- Κάθε κάρτα να ελέγχει ΜΙΑ συγκεκριμένη ιδέα — απόφυγε υπερφορτωμένες κάρτες με πολλά μαζί.
-- Όλες οι κάρτες να προκύπτουν από το κείμενο της διάλεξης.
+Quality requirements:
+- Give EXACTLY ${QUESTION_COUNT} distinct cards, with no repeated or near-identical cards.
+- COVERAGE: spread the cards across ALL the material in the text (all chapters and topics), not just one part.
+- Mix difficulties (a fair number of easy, medium and hard).
+- Each card must test ONE specific idea; avoid overloaded cards that combine several.
+- All cards must come from the lecture text.
 `.trim();
 
 const INSTRUCTIONS: Record<Mode, string> = {
@@ -146,10 +147,10 @@ function coverageBlock(mode: Mode, covered: string[] | undefined): string {
   if (items.length === 0) return "";
 
   return (
-    `ΗΔΗ ΚΑΛΥΜΜΕΝΕΣ ΕΝΝΟΙΕΣ: ο φοιτητής έχει ΗΔΗ άλλο υλικό εξάσκησης για το ίδιο κείμενο, ` +
-    `που καλύπτει τις παρακάτω έννοιες/ερωτήσεις. ΠΡΟΤΙΜΗΣΕ να καλύψεις ΔΙΑΦΟΡΕΤΙΚΑ σημεία της ύλης ` +
-    `και ΜΗΝ επαναλάβεις αυτές τις έννοιες. Μόνο αν το κείμενο ΔΕΝ έχει αρκετό διαφορετικό υλικό για να ` +
-    `συμπληρώσεις το ζητούμενο πλήθος, επιτρέπεται να επικαλυφθείς — προτεραιότητα είναι να φτάσεις το πλήθος.\n` +
+    `ALREADY COVERED CONCEPTS: the student ALREADY has other practice material for the same text, ` +
+    `covering the concepts/questions below. PREFER to cover DIFFERENT parts of the material ` +
+    `and do NOT repeat these concepts. Only if the text does NOT have enough different material to ` +
+    `reach the requested count may you overlap — reaching the count is the priority.\n` +
     items.map((c, i) => `${i + 1}. ${c}`).join("\n") +
     `\n\n`
   );
@@ -160,14 +161,14 @@ export function buildPrompt(mode: Mode, params: GenerateParams): BuiltPrompt {
   const system = `${SHARED_RULES}\n\n${INSTRUCTIONS[mode]}`.trim();
 
   const context = params.courseContext?.trim()
-    ? `Πλαίσιο από τον φοιτητή (π.χ. μάθημα ή κεφάλαιο): ${params.courseContext.trim()}\n\n`
+    ? `Context from the student (e.g. course or chapter): ${params.courseContext.trim()}\n\n`
     : "";
 
   const coverage = coverageBlock(mode, params.covered);
 
   const user =
-    `${context}${coverage}Ακολουθεί το κείμενο της διάλεξης. Με βάση ΑΥΤΟ και μόνο, ετοίμασε το ζητούμενο υλικό σε έγκυρο JSON.\n\n` +
-    `=== ΑΡΧΗ ΚΕΙΜΕΝΟΥ ===\n${params.documentText}\n=== ΤΕΛΟΣ ΚΕΙΜΕΝΟΥ ===`;
+    `${context}${coverage}The lecture text follows. Based on THIS alone, prepare the requested material as valid JSON, in the main language of the text.\n\n` +
+    `=== START OF TEXT ===\n${params.documentText}\n=== END OF TEXT ===`;
 
   return { system, user };
 }

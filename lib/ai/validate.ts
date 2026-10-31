@@ -10,14 +10,14 @@ import type {
 
 /**
  * Validators that turn an `unknown` parsed JSON blob (from any provider) into a
- * typed, trusted material — or throw a Greek AIProviderError. Kept provider-
+ * typed, trusted material — or throw an AIProviderError. Kept provider-
  * agnostic and side-effect free so it can be unit-tested without the network.
  */
 
 function fail(detail: string): never {
   throw new AIProviderError(
     "INVALID_RESPONSE",
-    "Το μοντέλο επέστρεψε μη έγκυρη απάντηση. Δοκίμασε ξανά.",
+    "The model returned an invalid response. Try again.",
     { retryable: true, cause: new Error(detail) },
   );
 }
@@ -50,8 +50,40 @@ function repairLatexEscapes(s: string): string {
   return s.replace(REPAIR_RE, (c) => REPAIR_MAP[c] ?? c);
 }
 
+// The UI only renders $...$ and $$...$$, but the model sometimes answers with
+// \(...\) and \[...\] instead. The lookbehind keeps a matrix row break followed
+// by a spacing argument, like \\[2pt], from being read as a delimiter.
+const INLINE_DELIMS_RE = /(?<!\\)\\\(([\s\S]+?)(?<!\\)\\\)/g;
+const DISPLAY_DELIMS_RE = /(?<!\\)\\\[([\s\S]+?)(?<!\\)\\\]/g;
+
+function normalizeMathDelimiters(s: string): string {
+  return s
+    .replace(DISPLAY_DELIMS_RE, (_, math: string) => `$$${math}$$`)
+    .replace(INLINE_DELIMS_RE, (_, math: string) => `$${math}$`);
+}
+
+// The model sometimes escapes twice, so a parsed value holds \\lambda instead of
+// \lambda. A double backslash can also be a legitimate matrix row break, so a
+// value only counts as over-escaped when a double backslash leads a command or
+// delimiter AND no properly escaped command appears anywhere in it. \\[2pt] is
+// a row break with a spacing argument, not a delimiter.
+const OVER_ESCAPED_RE = /(?<!\\)\\\\(?:[a-zA-Z]{2}|\(|\[(?!\s*-?[\d.]+\s*[a-z]{2}\]))/;
+const PROPER_COMMAND_RE = /(?<!\\)\\[a-zA-Z(\[]/;
+
+function repairOverEscaping(s: string): string {
+  if (!OVER_ESCAPED_RE.test(s) || PROPER_COMMAND_RE.test(s)) return s;
+  return s.replace(/\\\\/g, "\\");
+}
+
 function str(value: unknown): string {
-  return typeof value === "string" ? repairLatexEscapes(value).trim() : "";
+  return typeof value === "string"
+    ? normalizeMathDelimiters(repairOverEscaping(repairLatexEscapes(value))).trim()
+    : "";
+}
+
+/** A formula's LaTeX, without delimiters: the views add their own around it. */
+function bareLatex(value: unknown): string {
+  return str(value).replace(/^\$+|\$+$/g, "").trim();
 }
 
 export function parseSummary(raw: unknown): SummaryMaterial {
@@ -66,7 +98,7 @@ export function parseSummary(raw: unknown): SummaryMaterial {
         keyFormulas: asArray(sec.keyFormulas)
           .map((f) => {
             const kf = asObject(f, "keyFormula");
-            return { latex: str(kf.latex), explanation: str(kf.explanation) };
+            return { latex: bareLatex(kf.latex), explanation: str(kf.explanation) };
           })
           .filter((kf) => kf.latex.length > 0),
       };
@@ -77,7 +109,7 @@ export function parseSummary(raw: unknown): SummaryMaterial {
 
   return {
     mode: "summary",
-    title: str(root.title) || "Σύνοψη",
+    title: str(root.title) || "Summary",
     sections,
     examTips: asArray(root.examTips)
       .map((t) => str(t))
@@ -93,7 +125,7 @@ export function parseEli5(raw: unknown): Eli5Material {
 
   return {
     mode: "eli5",
-    title: str(root.title) || "Απλή εξήγηση",
+    title: str(root.title) || "Simple explanation",
     explanation,
     analogies: asArray(root.analogies)
       .map((a) => {
@@ -164,7 +196,7 @@ export function parseTrueFalse(raw: unknown): TrueFalseMaterial {
 
   return {
     mode: "truefalse",
-    title: str(root.title) || "Σωστό / Λάθος",
+    title: str(root.title) || "True / False",
     questions,
   };
 }
@@ -185,5 +217,5 @@ export function parseFlashcards(raw: unknown): FlashcardMaterial {
 
   if (cards.length === 0) fail("flashcards has no usable cards");
 
-  return { mode: "flashcards", title: str(root.title) || "Κάρτες", cards };
+  return { mode: "flashcards", title: str(root.title) || "Flashcards", cards };
 }

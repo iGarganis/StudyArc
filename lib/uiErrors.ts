@@ -3,29 +3,29 @@ import { humanSize } from "@/lib/study";
 export type UiError = { title: string; description: string };
 
 export const NOT_PDF_ERROR: UiError = {
-  title: "Το αρχείο δεν είναι PDF",
-  description: "Επιλέξτε ένα αρχείο PDF. Άλλοι τύποι αρχείων δεν υποστηρίζονται.",
+  title: "This file is not a PDF",
+  description: "Choose a PDF file. Other file types are not supported.",
 };
 
 const GENERIC_ERROR: UiError = {
-  title: "Η δημιουργία υλικού απέτυχε",
-  description: "Παρουσιάστηκε σφάλμα κατά τη δημιουργία. Δοκιμάστε ξανά σε λίγο.",
+  title: "Generation failed",
+  description: "Something went wrong while generating the material. Try again shortly.",
 };
 
 const NO_TEXT_ERROR: UiError = {
-  title: "Το PDF δεν έχει επιλέξιμο κείμενο",
+  title: "This PDF has no selectable text",
   description:
-    "Το αρχείο φαίνεται σαρωμένο, οπότε δεν μπορεί να διαβαστεί. Χρησιμοποιήστε ένα PDF με επιλέξιμο κείμενο ή περάστε το πρώτα από αναγνώριση κειμένου (OCR).",
+    "The file looks scanned, so it cannot be read. Use a PDF with selectable text, or run it through text recognition (OCR) first.",
 };
 
 const OVERLOADED_ERROR: UiError = {
-  title: "Το μοντέλο είναι προσωρινά υπερφορτωμένο",
+  title: "The model is temporarily overloaded",
   description:
-    "Η υπηρεσία δέχεται πολλά αιτήματα αυτή τη στιγμή. Δοκιμάστε ξανά σε λίγα λεπτά.",
+    "The service is receiving many requests right now. Try again in a few minutes.",
 };
 
 /**
- * Turn an /api/generate failure into the UI's title + text. The server's Greek
+ * Turn an /api/generate failure into the UI's title + text. The server's
  * `error` string stays the source for the one case its code can't distinguish:
  * PROVIDER_ERROR covers both an overloaded model and any other provider failure.
  */
@@ -37,48 +37,48 @@ export function errorFromApi(
   switch (code) {
     case "EMPTY_FILE":
       return {
-        title: "Το αρχείο είναι κενό",
-        description: "Το αρχείο δεν έχει περιεχόμενο. Ελέγξτε το και δοκιμάστε ξανά.",
+        title: "This file is empty",
+        description: "The file has no content. Check it and try again.",
       };
     case "TOO_LARGE":
       return {
-        title: "Το αρχείο ξεπερνά τα 20 MB",
-        description: `Το αρχείο είναι ${humanSize(fileSize)}. Συμπιέστε το ή χωρίστε τη διάλεξη σε μικρότερα αρχεία.`,
+        title: "This file is larger than 20 MB",
+        description: `The file is ${humanSize(fileSize)}. Compress it or split the lecture into smaller files.`,
       };
     case "CORRUPT_PDF":
       return {
-        title: "Δεν ήταν δυνατό να ανοίξει το PDF",
+        title: "The PDF could not be opened",
         description:
-          "Το αρχείο είναι κατεστραμμένο ή προστατεύεται με κωδικό. Αφαιρέστε την προστασία ή αποθηκεύστε το ξανά ως PDF και ανεβάστε το.",
+          "The file is corrupt or password protected. Remove the protection or save it again as a PDF, then upload it.",
       };
     case "NO_TEXT":
     case "EMPTY_DOCUMENT":
       return NO_TEXT_ERROR;
     case "RATE_LIMITED":
       return {
-        title: "Πολλά αιτήματα σε σύντομο χρόνο",
+        title: "Too many requests",
         description:
-          "Συμπληρώθηκε το όριο αιτημάτων ανά λεπτό. Δοκιμάστε ξανά σε περίπου ένα λεπτό.",
+          "The per-minute request limit was reached. Try again in about a minute.",
       };
     case "QUOTA_EXHAUSTED":
       return {
-        title: "Εξαντλήθηκε το ημερήσιο όριο",
+        title: "Daily limit reached",
         description:
-          "Χρησιμοποιήθηκαν όλα τα αιτήματα ή τα tokens της ημέρας. Το όριο μηδενίζει αύριο.",
+          "All of today's requests or tokens have been used. The limit resets tomorrow.",
       };
     case "INVALID_RESPONSE":
       return {
-        title: "Η απάντηση του μοντέλου δεν ήταν έγκυρη",
-        description: "Το υλικό δεν δημιουργήθηκε σωστά. Δοκιμάστε ξανά τη δημιουργία.",
+        title: "The model's response was not valid",
+        description: "The material was not generated correctly. Try generating it again.",
       };
     case "MISSING_API_KEY":
       return {
-        title: "Πρόβλημα με το κλειδί API",
+        title: "API key problem",
         description:
-          "Το κλειδί του Gemini λείπει ή δεν είναι έγκυρο. Ελέγξτε τη ρύθμιση GEMINI_API_KEY στον server.",
+          "The Gemini key is missing or invalid. Check the GEMINI_API_KEY setting on the server.",
       };
     case "PROVIDER_ERROR":
-      return serverMessage?.includes("υπερφορτωμένο")
+      return serverMessage?.includes("overloaded")
         ? OVERLOADED_ERROR
         : GENERIC_ERROR;
     default:

@@ -4,6 +4,7 @@ import "katex/dist/katex.min.css";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
+// The Greek subset stays: generated material follows the document's language.
 const inter = Inter({
   subsets: ["latin", "greek"],
   weight: ["400", "500", "600"],
@@ -11,9 +12,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "StudyArc — Από PDF σε υλικό μελέτης",
+  title: "StudyArc — From PDF to study material",
   description:
-    "Ανεβάστε ένα PDF διάλεξης και δημιουργήστε Σύνοψη, Απλή εξήγηση, Quiz, Σωστό / Λάθος και Κάρτες στα ελληνικά.",
+    "Upload a lecture PDF and create a summary, simple explanation, quiz, true/false set and flashcards in the language of your document.",
 };
 
 // Apply the saved (or system) theme before the first paint.
@@ -24,7 +25,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
-      lang="el"
+      lang="en"
       className={inter.variable}
       data-theme="light"
       suppressHydrationWarning

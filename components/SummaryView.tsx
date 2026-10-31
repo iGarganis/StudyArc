@@ -36,7 +36,7 @@ export function SummaryView({ data }: { data: SummaryMaterial }) {
       {data.examTips.length > 0 && (
         <section className="flex flex-col gap-3 pt-6 text-base">
           <h3 className="text-base leading-6 font-semibold">
-            Συμβουλές για την εξέταση
+            Exam tips
           </h3>
           <ul className="flex list-disc flex-col gap-1.5 pl-5">
             {data.examTips.map((t, i) => (

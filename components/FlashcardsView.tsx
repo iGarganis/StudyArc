@@ -55,12 +55,12 @@ export function FlashcardsView({ data }: { data: FlashcardMaterial }) {
     <div className="flex flex-col gap-2">
       <div className="flex justify-between font-medium tabular-nums">
         <span>
-          Κάρτα {shownPos} / {order.length}
+          Card {shownPos} / {order.length}
         </span>
-        <span>Γνωστές: {known}</span>
+        <span>Known: {known}</span>
       </div>
       <Progress
-        aria-label="Πρόοδος καρτών"
+        aria-label="Card progress"
         value={shownPos}
         max={order.length}
       />
@@ -76,28 +76,28 @@ export function FlashcardsView({ data }: { data: FlashcardMaterial }) {
         <Card className="flex min-h-60 flex-col justify-center gap-4 p-6">
           <div className="flex flex-col gap-1">
             <p role="status" className="text-xl font-semibold tabular-nums">
-              Γνωρίζατε {passed} από {order.length}
+              You knew {passed} of {order.length}
             </p>
             <p className="text-muted-foreground">
               {wrong.length > 0
-                ? "Μπορείτε να επαναλάβετε μόνο τις κάρτες που δεν γνωρίζατε ή να ξεκινήσετε από την αρχή."
-                : "Μπορείτε να ξεκινήσετε από την αρχή ή με ανακατεμένη σειρά."}
+                ? "You can repeat only the cards you missed, or start over."
+                : "You can start over or shuffle the deck."}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
             {wrong.length > 0 && (
               <Button onClick={() => restart(wrong)}>
-                Επανάληψη λαθών ({wrong.length})
+                Repeat missed ({wrong.length})
               </Button>
             )}
             <Button
               variant="outline"
               onClick={() => restart(data.cards.map((_, i) => i))}
             >
-              Από την αρχή
+              Start over
             </Button>
             <Button variant="outline" onClick={shuffle}>
-              Ανακάτεμα
+              Shuffle
             </Button>
           </div>
         </Card>
@@ -112,7 +112,7 @@ export function FlashcardsView({ data }: { data: FlashcardMaterial }) {
         <button
           type="button"
           onClick={() => setFlipped((f) => !f)}
-          aria-label={`Κάρτα, όψη ${flipped ? "απάντησης" : "ερώτησης"}. Πατήστε για αναστροφή.`}
+          aria-label={`Card, ${flipped ? "answer" : "question"} side. Press to flip.`}
           className={
             "flex min-h-60 w-full cursor-pointer flex-col gap-4 rounded-lg border px-5 pt-4 pb-6 text-center " +
             (flipped ? "bg-muted" : "bg-card")
@@ -120,7 +120,7 @@ export function FlashcardsView({ data }: { data: FlashcardMaterial }) {
         >
           <span className="flex w-full items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground">
-              {flipped ? "Απάντηση" : "Ερώτηση"}
+              {flipped ? "Answer" : "Question"}
             </span>
             <Badge
               variant="secondary"
@@ -141,13 +141,13 @@ export function FlashcardsView({ data }: { data: FlashcardMaterial }) {
         {flipped ? (
           <div className="grid grid-cols-2 gap-2">
             <Button variant="outline" onClick={() => answer(false)}>
-              Δεν το γνώριζα
+              I didn&apos;t know it
             </Button>
-            <Button onClick={() => answer(true)}>Το γνώριζα</Button>
+            <Button onClick={() => answer(true)}>I knew it</Button>
           </div>
         ) : (
           <Button className="w-full" onClick={() => setFlipped(true)}>
-            Εμφάνιση απάντησης
+            Show answer
           </Button>
         )}
       </div>

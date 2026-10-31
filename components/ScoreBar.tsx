@@ -28,8 +28,8 @@ export function ScoreBar({
     <div className="border-b bg-background px-4 py-2.5 sm:px-6 sm:py-3">
       <div className="mx-auto flex w-full max-w-[768px] flex-col gap-2">
         <p aria-live="polite" className="font-medium tabular-nums">
-          Σκορ: {score} / {total} ·{" "}
-          {answered === total ? "Ολοκληρώθηκε" : `${answered} απαντημένες`}
+          Score: {score} / {total} ·{" "}
+          {answered === total ? "Completed" : `${answered} answered`}
         </p>
         <Progress aria-label={progressLabel} value={answered} max={total} />
       </div>

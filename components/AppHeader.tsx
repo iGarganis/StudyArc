@@ -52,18 +52,18 @@ export function AppHeader({
           ref={historyButtonRef}
           variant="ghost"
           size="sm"
-          aria-label="Ιστορικό"
+          aria-label="History"
           onClick={onHistory}
           className="max-md:w-8 max-md:px-0 max-sm:w-10"
         >
           <History />
-          <span className="max-md:hidden">Ιστορικό</span>
+          <span className="max-md:hidden">History</span>
         </Button>
 
         <Button
           variant="ghost"
           size="icon-sm"
-          aria-label="Εναλλαγή θέματος"
+          aria-label="Toggle theme"
           onClick={onToggleTheme}
         >
           {/* Driven by data-theme so the icon is right from the first paint. */}
@@ -74,12 +74,12 @@ export function AppHeader({
         <Button
           variant="outline"
           size="sm"
-          aria-label="Νέα μελέτη"
+          aria-label="New study"
           onClick={onNewStudy}
           className="ml-1 max-sm:w-10 max-sm:px-0"
         >
           <Plus />
-          <span className="max-sm:hidden">Νέα μελέτη</span>
+          <span className="max-sm:hidden">New study</span>
         </Button>
       </div>
     </header>

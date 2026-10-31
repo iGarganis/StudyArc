@@ -39,7 +39,7 @@ export function QuizView({
         score={score}
         answered={answered}
         total={data.questions.length}
-        progressLabel="Απαντημένες ερωτήσεις"
+        progressLabel="Answered questions"
       />
 
       {data.questions.map((q, qi) => {
@@ -54,7 +54,7 @@ export function QuizView({
           >
             <div
               role="group"
-              aria-label={`Επιλογές ερώτησης ${qi + 1}`}
+              aria-label={`Question ${qi + 1} options`}
               className="flex flex-col gap-2"
             >
               {q.options.map((opt, oi) => {
@@ -69,7 +69,7 @@ export function QuizView({
                     key={oi}
                     state={state}
                     letter={optionLetter(oi)}
-                    tag={state === "correct" ? "Σωστή" : "Η απάντησή σας"}
+                    tag={state === "correct" ? "Correct" : "Your answer"}
                     onClick={() => pick(qi, oi)}
                   >
                     <MathText text={opt} />
@@ -86,7 +86,7 @@ export function QuizView({
                 {chosen !== q.correctIndex && (
                   <p>
                     <b className="font-semibold">
-                      Σωστή απάντηση ({optionLetter(q.correctIndex)}):
+                      Correct answer ({optionLetter(q.correctIndex)}):
                     </b>{" "}
                     <MathText text={q.explanations[q.correctIndex] ?? ""} />
                   </p>

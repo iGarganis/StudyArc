@@ -9,7 +9,7 @@ import { humanSize } from "@/lib/study";
 import { cn } from "@/lib/utils";
 import type { UiError } from "@/lib/uiErrors";
 
-const DROP_HINT = "Αφήστε το αρχείο εδώ";
+const DROP_HINT = "Drop the file here";
 const ROW = "flex items-center gap-3 rounded-lg border py-3 pr-3 pl-4";
 const ROW_DRAG = "border-foreground bg-muted";
 
@@ -88,7 +88,7 @@ export function UploadArea({
           onClick={onClear}
           className="ml-auto"
         >
-          Αλλαγή
+          Change
         </Button>
       </div>
     );
@@ -105,7 +105,7 @@ export function UploadArea({
             {dragging ? DROP_HINT : studyName}
           </span>
           <span className="text-xs text-muted-foreground">
-            Για νέο υλικό ανεβάστε ξανά το PDF ή σύρετέ το εδώ.
+            To generate more, upload the PDF again or drag it here.
           </span>
         </span>
         <Button
@@ -115,7 +115,7 @@ export function UploadArea({
           className="max-sm:w-full"
         >
           <Upload />
-          Ανέβασμα PDF
+          Upload PDF
         </Button>
       </div>
     );
@@ -147,9 +147,9 @@ export function UploadArea({
             <>
               <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span className="text-base leading-6 font-medium">
-                  Σύρετε ένα PDF εδώ
+                  Drag a PDF here
                 </span>
-                <span className="text-muted-foreground">PDF, έως 20 MB</span>
+                <span className="text-muted-foreground">PDF, up to 20 MB</span>
               </span>
               <span
                 className={cn(
@@ -157,7 +157,7 @@ export function UploadArea({
                   "max-sm:w-full",
                 )}
               >
-                Επιλογή αρχείου
+                Choose file
               </span>
             </>
           )}

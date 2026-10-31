@@ -50,13 +50,13 @@ export function HistorySheet({
       >
         <div className="flex items-start gap-2 py-3 pr-3 pl-4 sm:pt-4 sm:pr-4 sm:pl-5">
           <div className="flex flex-1 flex-col gap-0.5 max-sm:pt-1">
-            <SheetTitle>Ιστορικό</SheetTitle>
+            <SheetTitle>History</SheetTitle>
             <SheetDescription>
-              Αποθηκεύεται μόνο σε αυτόν τον browser.
+              Stored only in this browser.
             </SheetDescription>
           </div>
           <SheetClose asChild>
-            <Button variant="ghost" size="icon-sm" aria-label="Κλείσιμο">
+            <Button variant="ghost" size="icon-sm" aria-label="Close">
               <X />
             </Button>
           </SheetClose>
@@ -65,11 +65,11 @@ export function HistorySheet({
 
         {sessions.length === 0 ? (
           <p className="flex-1 px-5 py-6 text-muted-foreground">
-            Δεν υπάρχει ιστορικό. Το υλικό που δημιουργείτε θα εμφανίζεται εδώ.
+            No history yet. The material you generate will appear here.
           </p>
         ) : (
           <nav
-            aria-label="Μελέτες"
+            aria-label="Studies"
             className="flex-1 overflow-y-auto px-2 pb-4"
           >
             {groupSessions(sessions).map(([group, items]) => (
@@ -101,7 +101,7 @@ export function HistorySheet({
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      aria-label={`Διαγραφή μελέτης ${s.fileName}`}
+                      aria-label={`Delete study ${s.fileName}`}
                       onClick={() => onDeleteSession(s.id)}
                       className="text-muted-foreground hover:text-destructive"
                     >

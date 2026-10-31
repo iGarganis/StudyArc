@@ -175,7 +175,7 @@ export class GeminiProvider implements AIProvider {
     if (!apiKey) {
       throw new AIProviderError(
         "MISSING_API_KEY",
-        "Λείπει το κλειδί API του Gemini. Αντίγραψε το .env.local.example σε .env.local και συμπλήρωσε το GEMINI_API_KEY.",
+        "The Gemini API key is missing. Copy .env.local.example to .env.local and fill in GEMINI_API_KEY.",
       );
     }
     this.client = new GoogleGenAI({ apiKey });
@@ -186,7 +186,7 @@ export class GeminiProvider implements AIProvider {
     if (!params.documentText?.trim()) {
       throw new AIProviderError(
         "EMPTY_DOCUMENT",
-        "Δεν υπάρχει κείμενο για επεξεργασία.",
+        "There is no text to process.",
       );
     }
     return withRetry(() => this.generateOnce(params), { onRetry: logRetry });
@@ -218,7 +218,7 @@ export class GeminiProvider implements AIProvider {
         material = parseFlashcards(data);
         break;
       default:
-        throw new AIProviderError("PROVIDER_ERROR", "Άγνωστη λειτουργία.");
+        throw new AIProviderError("PROVIDER_ERROR", "Unknown mode.");
     }
     return { material, usageTokens };
   }
@@ -259,7 +259,7 @@ export class GeminiProvider implements AIProvider {
     if (!text) {
       throw new AIProviderError(
         "INVALID_RESPONSE",
-        "Το μοντέλο δεν επέστρεψε αποτέλεσμα. Δοκίμασε ξανά.",
+        "The model returned no result. Try again.",
         { retryable: true },
       );
     }
@@ -269,7 +269,7 @@ export class GeminiProvider implements AIProvider {
     } catch (err) {
       throw new AIProviderError(
         "INVALID_RESPONSE",
-        "Το μοντέλο επέστρεψε μη έγκυρη απάντηση. Δοκίμασε ξανά.",
+        "The model returned an invalid response. Try again.",
         { retryable: true, cause: err },
       );
     }
@@ -280,7 +280,7 @@ function logRetry(attempt: number, delayMs: number, err: AIProviderError): void 
   console.error(`[gemini] transient ${err.code}; retry ${attempt} in ${delayMs}ms`);
 }
 
-/** Map an unknown SDK/network error to a typed, Greek AIProviderError. */
+/** Map an unknown SDK/network error to a typed AIProviderError. */
 export function toAIProviderError(err: unknown): AIProviderError {
   if (err instanceof AIProviderError) return err;
 
@@ -292,14 +292,14 @@ export function toAIProviderError(err: unknown): AIProviderError {
     if (/per.?day|requests?.?per.?day|limit:\s*0|billing|plan and billing/i.test(message)) {
       return new AIProviderError(
         "QUOTA_EXHAUSTED",
-        "Εξαντλήθηκε το ημερήσιο όριο δωρεάν αιτημάτων του Gemini (ή δεν υπάρχει διαθέσιμη ποσόστωση για αυτό το μοντέλο). Δοκίμασε ξανά αργότερα ή έλεγξε το πλάνο/κλειδί σου.",
+        "Gemini's daily free request limit is used up (or this model has no available quota). Try again later or check your plan and key.",
         { retryable: false, cause: err },
       );
     }
     // Per-minute rate limit → transient, retry with backoff.
     return new AIProviderError(
       "RATE_LIMITED",
-      "Υπέρβαση ορίου αιτημάτων ανά λεπτό στο Gemini. Περίμενε λίγο και προσπάθησε ξανά.",
+      "Gemini's per-minute request limit was exceeded. Wait a moment and try again.",
       { retryable: true, cause: err },
     );
   }
@@ -310,7 +310,7 @@ export function toAIProviderError(err: unknown): AIProviderError {
   ) {
     return new AIProviderError(
       "MISSING_API_KEY",
-      "Πρόβλημα με το κλειδί API του Gemini. Έλεγξε το GEMINI_API_KEY στο .env.local.",
+      "There is a problem with the Gemini API key. Check GEMINI_API_KEY in .env.local.",
       { cause: err },
     );
   }
@@ -322,13 +322,13 @@ export function toAIProviderError(err: unknown): AIProviderError {
   ) {
     return new AIProviderError(
       "PROVIDER_ERROR",
-      "Το Gemini είναι προσωρινά υπερφορτωμένο. Δοκίμασε ξανά σε λίγο.",
+      "Gemini is temporarily overloaded. Try again shortly.",
       { retryable: true, cause: err },
     );
   }
   return new AIProviderError(
     "PROVIDER_ERROR",
-    "Σφάλμα κατά την επικοινωνία με το Gemini. Δοκίμασε ξανά σε λίγο.",
+    "Could not reach Gemini. Try again shortly.",
     { retryable: true, cause: err },
   );
 }

@@ -86,14 +86,14 @@ export function ModeTabs({
       onValueChange={(v) => onTabChange(v as Mode)}
       className="gap-5 sm:gap-6"
     >
-      <TabsList aria-label="Μορφές υλικού">
+      <TabsList aria-label="Material formats">
         {MODE_LIST.map((m) => (
           <TabsTrigger key={m.id} value={m.id}>
             {m.label}
             {loadingMode === m.id ? (
-              <span aria-label="σε δημιουργία">…</span>
+              <span aria-label="generating">…</span>
             ) : (
-              panels[m.id] && <Check role="img" aria-label="έτοιμο" />
+              panels[m.id] && <Check role="img" aria-label="ready" />
             )}
           </TabsTrigger>
         ))}
@@ -114,10 +114,10 @@ export function ModeTabs({
             {loading && (
               <Card className="p-6">
                 <p role="status" className="text-base leading-6 font-medium">
-                  Δημιουργία υλικού. Μπορεί να διαρκέσει έως 2 λεπτά.
+                  Generating material. This can take up to 2 minutes.
                 </p>
                 <p className="mt-1 text-muted-foreground">
-                  Στο μεταξύ μπορείτε να δείτε τα υπόλοιπα tabs.
+                  You can browse the other tabs in the meantime.
                 </p>
               </Card>
             )}
@@ -132,7 +132,7 @@ export function ModeTabs({
                     <p className="truncate text-muted-foreground">
                       {result.fileName}
                       {result.meta?.totalPages
-                        ? ` · ${result.meta.totalPages} σελ.`
+                        ? ` · ${result.meta.totalPages} ${result.meta.totalPages === 1 ? "page" : "pages"}`
                         : ""}
                     </p>
                   </div>
@@ -145,30 +145,30 @@ export function ModeTabs({
                       }
                     >
                       <Download />
-                      Λήψη PDF
+                      Download PDF
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
-                      aria-label="Αναδημιουργία"
-                      title="Αναδημιουργία"
+                      aria-label="Regenerate"
+                      title="Regenerate"
                       disabled={busy || !hasFile}
                       onClick={() => onGenerate(m.id)}
                       className="max-md:w-8 max-md:px-0 max-sm:w-10"
                     >
                       <RefreshCw />
-                      <span className="max-md:hidden">Αναδημιουργία</span>
+                      <span className="max-md:hidden">Regenerate</span>
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
-                      aria-label="Αφαίρεση"
-                      title="Αφαίρεση"
+                      aria-label="Remove"
+                      title="Remove"
                       onClick={() => onRemove(m.id)}
                       className="max-md:w-8 max-md:px-0 max-sm:w-10"
                     >
                       <X />
-                      <span className="max-md:hidden">Αφαίρεση</span>
+                      <span className="max-md:hidden">Remove</span>
                     </Button>
                   </div>
                 </div>
@@ -186,11 +186,11 @@ export function ModeTabs({
                 <p className="text-muted-foreground">{m.blurb}</p>
                 {hasFile ? (
                   <Button disabled={busy} onClick={() => onGenerate(m.id)}>
-                    Δημιουργία
+                    Generate
                   </Button>
                 ) : (
                   <p>
-                    Για να δημιουργηθεί αυτή η μορφή, ανεβάστε ξανά το PDF.
+                    To generate this format, upload the PDF again.
                   </p>
                 )}
               </Card>

@@ -4,30 +4,30 @@ import { TESTING_MODES, isTestingMode } from "@/lib/ai/types";
 export const MODE_LIST: { id: Mode; label: string; blurb: string }[] = [
   {
     id: "summary",
-    label: "Σύνοψη",
+    label: "Summary",
     blurb:
-      "Τα βασικά σημεία, οι ορισμοί και οι τύποι της διάλεξης, οργανωμένα σε ενότητες.",
+      "The lecture's key points, definitions and formulas, organized into sections.",
   },
   {
     id: "eli5",
-    label: "Απλή εξήγηση",
-    blurb: "Η ύλη με απλά λόγια, με αναλογίες για τις βασικές έννοιες.",
+    label: "Simple explanation",
+    blurb: "The material in plain language, with analogies for the main concepts.",
   },
   {
     id: "quiz",
     label: "Quiz",
-    blurb: "20 ερωτήσεις πολλαπλής επιλογής, με εξήγηση για κάθε απάντηση.",
+    blurb: "20 multiple-choice questions, with an explanation for every answer.",
   },
   {
     id: "truefalse",
-    label: "Σωστό / Λάθος",
+    label: "True / False",
     blurb:
-      "20 δηλώσεις για να ελέγξετε αν κάτι ισχύει ή όχι, με εξήγηση για κάθε απάντηση.",
+      "20 statements to judge as true or false, with an explanation for every answer.",
   },
   {
     id: "flashcards",
-    label: "Κάρτες",
-    blurb: "20 κάρτες για ενεργή ανάκληση, με επανάληψη όσων δεν γνωρίζατε.",
+    label: "Flashcards",
+    blurb: "20 cards for active recall, with repeat rounds for the ones you missed.",
   },
 ];
 
@@ -51,16 +51,16 @@ export const REQUEST_LIMIT = 250; // requests per day
 export const TOKEN_LIMIT = 250_000; // tokens
 
 export const USAGE_HINT =
-  "Σημερινή χρήση σε σχέση με τα ημερήσια όρια του Gemini. Μηδενίζει κάθε μέρα.";
+  "Today's usage against Gemini's daily limits. Resets every day.";
 
 export const DIFFICULTY_LABEL: Record<Difficulty, string> = {
-  easy: "Εύκολη",
-  medium: "Μέτρια",
-  hard: "Δύσκολη",
+  easy: "Easy",
+  medium: "Medium",
+  hard: "Hard",
 };
 
-/** Greek capital letter for an option index (0 → Α, 1 → Β, ...). */
-export const optionLetter = (i: number) => String.fromCharCode(913 + i);
+/** Capital letter for an option index (0 → A, 1 → B, ...). */
+export const optionLetter = (i: number) => String.fromCharCode(65 + i);
 
 export function humanSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -88,7 +88,7 @@ export function todayStr(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-/** Labels of the modes present in a session, e.g. "Σύνοψη · Quiz". */
+/** Labels of the modes present in a session, e.g. "Summary · Quiz". */
 export function sessionModes(panels: Panels): string {
   return MODE_LIST.filter((m) => panels[m.id])
     .map((m) => m.label)
@@ -120,11 +120,11 @@ function dateGroup(ts: number): string {
   const startOfDay = (d: Date) =>
     new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
   const days = Math.round((startOfDay(new Date()) - startOfDay(new Date(ts))) / 86_400_000);
-  if (days <= 0) return "Σήμερα";
-  if (days === 1) return "Χθες";
-  if (days < 7) return "Αυτή την εβδομάδα";
-  if (days < 30) return "Αυτόν τον μήνα";
-  return "Παλαιότερα";
+  if (days <= 0) return "Today";
+  if (days === 1) return "Yesterday";
+  if (days < 7) return "This week";
+  if (days < 30) return "This month";
+  return "Older";
 }
 
 /** Group already-newest-first sessions, preserving group order of appearance. */
