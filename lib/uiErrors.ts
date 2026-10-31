@@ -64,7 +64,7 @@ export function errorFromApi(
       return {
         title: "Daily limit reached",
         description:
-          "All of today's requests or tokens have been used. The limit resets tomorrow.",
+          "All of today's Gemini requests have been used. The limit resets at midnight Pacific time.",
       };
     case "INVALID_RESPONSE":
       return {

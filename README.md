@@ -57,6 +57,6 @@ samples/              your PDFs (git-ignored)
 
 ## Notes
 
-- **Free tier:** ~15 req/min, ~1,500 req/day on `gemini-2.5-flash`. During Google demand spikes you may see transient `503`s — the retry layer absorbs them.
+- **Free tier:** 20 requests per day on `gemini-2.5-flash`, as reported by the API in October 2026; check your own limits in AI Studio. During Google demand spikes you may see transient `503`s — the retry layer absorbs them.
 - **UI:** shadcn/ui with the Zinc theme, Inter (Latin + Greek, for generated material), no motion, and a light/dark toggle (persisted in `localStorage`). The design source is `docs/design/studybox-redesign.html`.
 - No database or auth yet: results cache in-memory (server) and persist to `localStorage` (client).

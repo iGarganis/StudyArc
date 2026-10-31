@@ -46,12 +46,14 @@ export type Session = {
 
 export type Usage = { date: string; requests: number; tokens: number };
 
-// Gemini free-tier reference limits (gemini-2.5-flash). Edit if your tier changes.
-export const REQUEST_LIMIT = 250; // requests per day
-export const TOKEN_LIMIT = 250_000; // tokens
+// Gemini's free-tier requests per day for gemini-2.5-flash, per project and model.
+// Google doesn't publish this; 20 is the quotaValue its 429 response reported in
+// October 2026. Edit if your tier or model changes. The counter is per browser and
+// resets at local midnight, while the real quota resets at midnight Pacific time.
+export const REQUEST_LIMIT = 20;
 
 export const USAGE_HINT =
-  "Today's usage against Gemini's daily limits. Resets every day.";
+  "Today's usage in this browser, against Gemini's daily request limit. Resets every day.";
 
 export const DIFFICULTY_LABEL: Record<Difficulty, string> = {
   easy: "Easy",
@@ -76,10 +78,7 @@ export function formatTokens(n: number): string {
 }
 
 export function usageLabel(usage: Usage): string {
-  return (
-    `${usage.requests}/${REQUEST_LIMIT} Req · ` +
-    `${formatTokens(usage.tokens)}/${formatTokens(TOKEN_LIMIT)} Tokens`
-  );
+  return `${usage.requests}/${REQUEST_LIMIT} Req · ${formatTokens(usage.tokens)} Tokens`;
 }
 
 /** Local YYYY-MM-DD, used to reset the daily usage counter. */
