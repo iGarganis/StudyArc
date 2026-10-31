@@ -61,6 +61,18 @@ export const DIFFICULTY_LABEL: Record<Difficulty, string> = {
   hard: "Hard",
 };
 
+// Formulas longer than this may need to wrap, so they can't be kept unbroken.
+const MAX_UNBROKEN_LATEX = 40;
+
+/**
+ * The punctuation to keep on the same line as the inline formula before it, so
+ * a line can't wrap between "$x$" and the "." that follows. Empty when none applies.
+ */
+export function punctuationToKeep(latex: string, nextText: string): string {
+  if (latex.length > MAX_UNBROKEN_LATEX) return "";
+  return /^[.,;:!?)\]]+/.exec(nextText)?.[0] ?? "";
+}
+
 /** Capital letter for an option index (0 → A, 1 → B, ...). */
 export const optionLetter = (i: number) => String.fromCharCode(65 + i);
 

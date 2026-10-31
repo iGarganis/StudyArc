@@ -1,6 +1,6 @@
 import katex from "katex";
 import type { GeneratedMaterial, Mode } from "@/lib/ai/types";
-import { DIFFICULTY_LABEL, optionLetter as letter } from "@/lib/study";
+import { DIFFICULTY_LABEL, optionLetter as letter, punctuationToKeep } from "@/lib/study";
 
 /**
  * Client-side "download as PDF" for a generated study panel.
@@ -32,27 +32,41 @@ function mathToHtml(text: string): string {
   const re = /\$\$([\s\S]+?)\$\$|\$([^$\n]+?)\$/g;
   let out = "";
   let last = 0;
+  // The inline formula just added, in case punctuation has to join it.
+  let pending: { latex: string; html: string } | null = null;
+  const addText = (value: string) => {
+    if (pending) {
+      const keep = punctuationToKeep(pending.latex, value);
+      if (keep) {
+        out =
+          out.slice(0, out.length - pending.html.length) +
+          `<span class="nb">${pending.html}${escapeHtml(keep)}</span>`;
+        value = value.slice(keep.length);
+      }
+      pending = null;
+    }
+    if (value) out += `<span class="t">${escapeHtml(value)}</span>`;
+  };
   let m: RegExpExecArray | null;
   while ((m = re.exec(text)) !== null) {
-    if (m.index > last) {
-      out += `<span class="t">${escapeHtml(text.slice(last, m.index))}</span>`;
-    }
+    if (m.index > last) addText(text.slice(last, m.index));
     const display = m[1] !== undefined;
     const latex = (display ? m[1] : m[2]) ?? "";
+    let html: string;
     try {
-      out += katex.renderToString(latex, {
+      html = katex.renderToString(latex, {
         displayMode: display,
         throwOnError: false,
         output: "htmlAndMathml",
       });
     } catch {
-      out += escapeHtml(latex);
+      html = escapeHtml(latex);
     }
+    out += html;
+    pending = display ? null : { latex, html };
     last = re.lastIndex;
   }
-  if (last < text.length) {
-    out += `<span class="t">${escapeHtml(text.slice(last))}</span>`;
-  }
+  if (last < text.length) addText(text.slice(last));
   return out;
 }
 
@@ -209,6 +223,7 @@ h2 { font-size: 14px; line-height: 20px; font-weight: 600; margin: 0 0 6px; }
 section { margin-bottom: 18px; }
 section > p { margin-bottom: 8px; }
 .t { white-space: pre-wrap; }
+.nb { white-space: nowrap; }
 b { font-weight: 600; }
 ul { padding-left: 20px; }
 li { margin: 4px 0; }
