@@ -1,32 +1,23 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Sans, Manrope } from "next/font/google";
+import { Inter } from "next/font/google";
 import "katex/dist/katex.min.css";
 import "./globals.css";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
-const plex = IBM_Plex_Sans({
+const inter = Inter({
   subsets: ["latin", "greek"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-plex",
-  display: "swap",
-});
-
-// Manrope has no Greek glyphs — used only for Latin display bits (wordmark,
-// "PDF", "Quiz"). Greek headings fall back to IBM Plex Sans automatically.
-const manrope = Manrope({
-  subsets: ["latin"],
-  weight: ["700", "800"],
-  variable: "--font-manrope",
-  display: "swap",
+  weight: ["400", "500", "600"],
+  variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
-  title: "StudyBox — Από PDF σε υλικό μελέτης",
+  title: "StudyArc — Από PDF σε υλικό μελέτης",
   description:
-    "Ανέβασε τις σημειώσεις της διάλεξης (PDF) και πάρε σύνοψη, απλή εξήγηση και quiz στα ελληνικά.",
+    "Ανεβάστε ένα PDF διάλεξης και δημιουργήστε Σύνοψη, Απλή εξήγηση, Quiz, Σωστό / Λάθος και Κάρτες στα ελληνικά.",
 };
 
-// Set the saved theme before paint to avoid a flash of the wrong palette.
-const themeInit = `(function(){try{var t=localStorage.getItem("studybox:theme");if(t)document.documentElement.dataset.theme=t;}catch(e){}})();`;
+// Apply the saved (or system) theme before the first paint.
+const themeScript = `try{var t=localStorage.getItem("studybox:theme");if(t!=="dark"&&t!=="light")t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.dataset.theme=t}catch(e){}`;
 
 export default function RootLayout({
   children,
@@ -34,13 +25,16 @@ export default function RootLayout({
   return (
     <html
       lang="el"
-      className={`${plex.variable} ${manrope.variable}`}
+      className={inter.variable}
+      data-theme="light"
       suppressHydrationWarning
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInit }} />
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className="antialiased">{children}</body>
+      <body>
+        <TooltipProvider>{children}</TooltipProvider>
+      </body>
     </html>
   );
 }

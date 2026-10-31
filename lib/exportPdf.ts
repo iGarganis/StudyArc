@@ -1,5 +1,6 @@
 import katex from "katex";
 import type { GeneratedMaterial, Mode } from "@/lib/ai/types";
+import { DIFFICULTY_LABEL, optionLetter as letter } from "@/lib/study";
 
 /**
  * Client-side "download as PDF" for a generated study panel.
@@ -18,9 +19,6 @@ const MODE_LABEL: Record<Mode, string> = {
   truefalse: "Σωστό / Λάθος",
   flashcards: "Κάρτες",
 };
-
-/** Greek capital letter for an option index (0 → Α, 1 → Β, ...). */
-const letter = (i: number) => String.fromCharCode(913 + i);
 
 function escapeHtml(s: string): string {
   return s
@@ -58,6 +56,22 @@ function mathToHtml(text: string): string {
   return out;
 }
 
+/** The title block: material title plus an optional one-line note. */
+function titleHtml(title: string, note?: string): string {
+  return (
+    `<div class="title"><h1 class="pt">${mathToHtml(title)}</h1>` +
+    `${note ? `<p class="pmeta">${escapeHtml(note)}</p>` : ""}</div>`
+  );
+}
+
+/** The numbered question line shared by quiz and true/false items. */
+function questionRow(n: number, text: string, difficulty: string): string {
+  return (
+    `<div class="qrow"><span class="n">${n}.</span>` +
+    `<p class="q">${mathToHtml(text)}</p><span class="diff">${escapeHtml(difficulty)}</span></div>`
+  );
+}
+
 function bodyHtml(material: GeneratedMaterial): string {
   switch (material.mode) {
     case "summary": {
@@ -66,12 +80,12 @@ function bodyHtml(material: GeneratedMaterial): string {
           const formulas = s.keyFormulas
             .map(
               (f) =>
-                `<div class="formula">${mathToHtml(`$$${f.latex}$$`)}` +
-                `<div class="fexp">${escapeHtml(f.explanation)}</div></div>`,
+                `<div class="formula print-item">${mathToHtml(`$$${f.latex}$$`)}` +
+                `<p class="fexp">${mathToHtml(f.explanation)}</p></div>`,
             )
             .join("");
           return (
-            `<section><h2>${escapeHtml(s.heading)}</h2>` +
+            `<section><h2>${mathToHtml(s.heading)}</h2>` +
             `<p>${mathToHtml(s.content)}</p>${formulas}</section>`
           );
         })
@@ -82,23 +96,24 @@ function bodyHtml(material: GeneratedMaterial): string {
             material.examTips.map((t) => `<li>${mathToHtml(t)}</li>`).join("") +
             `</ul></section>`
           : "";
-      return `<h1>${escapeHtml(material.title)}</h1>${sections}${tips}`;
+      return titleHtml(material.title) + sections + tips;
     }
 
     case "eli5": {
       const analogies =
         material.analogies.length > 0
-          ? `<h2>Αναλογίες</h2>` +
+          ? `<section><h2>Αναλογίες</h2>` +
             material.analogies
               .map(
                 (a) =>
-                  `<p><b>${escapeHtml(a.concept)}:</b> ${mathToHtml(a.analogy)}</p>`,
+                  `<p class="print-item"><b>${mathToHtml(a.concept)}:</b> ${mathToHtml(a.analogy)}</p>`,
               )
-              .join("")
+              .join("") +
+            `</section>`
           : "";
       return (
-        `<h1>${escapeHtml(material.title)}</h1>` +
-        `<p>${mathToHtml(material.explanation)}</p>${analogies}`
+        titleHtml(material.title) +
+        `<section><p>${mathToHtml(material.explanation)}</p></section>${analogies}`
       );
     }
 
@@ -109,89 +124,128 @@ function bodyHtml(material: GeneratedMaterial): string {
             .map((opt, oi) => {
               const correct = oi === q.correctIndex;
               return (
-                `<li class="opt${correct ? " correct" : ""}">` +
-                `<span class="let">${letter(oi)}.</span> ${mathToHtml(opt)}` +
-                `${correct ? ' <span class="tick">✓</span>' : ""}</li>`
+                `<div class="o${correct ? " c" : ""}">` +
+                `<span class="l">${letter(oi)}</span><span class="otext">${mathToHtml(opt)}</span>` +
+                `${correct ? '<span class="mk">✓ Σωστή</span>' : ""}</div>`
               );
             })
             .join("");
-          const ans =
-            `<div class="ans"><b>Σωστή απάντηση (${letter(q.correctIndex)}):</b> ` +
-            `${mathToHtml(q.explanations[q.correctIndex] ?? "")}</div>`;
           return (
-            `<div class="q"><p class="qh"><b>${qi + 1}.</b> ${mathToHtml(q.question)} ` +
-            `<span class="diff">${escapeHtml(q.difficulty)}</span></p>` +
-            `<ul class="opts">${opts}</ul>${ans}</div>`
+            `<div class="item print-item">` +
+            questionRow(qi + 1, q.question, DIFFICULTY_LABEL[q.difficulty]) +
+            `<div class="opts">${opts}</div>` +
+            `<p class="ex">${mathToHtml(q.explanations[q.correctIndex] ?? "")}</p></div>`
           );
         })
         .join("");
-      return `<h1>${escapeHtml(material.title)}</h1>${qs}`;
+      return (
+        titleHtml(
+          material.title,
+          `${material.questions.length} ερωτήσεις · η σωστή επιλογή είναι σημειωμένη με ✓ και ακολουθεί η εξήγησή της`,
+        ) + qs
+      );
     }
 
     case "truefalse": {
       const qs = material.questions
-        .map((q, qi) => {
-          return (
-            `<div class="q"><p class="qh"><b>${qi + 1}.</b> ${mathToHtml(q.statement)} ` +
-            `<span class="diff">${escapeHtml(q.difficulty)}</span></p>` +
-            `<div class="ans"><b>Απάντηση: ${q.answer ? "Σωστό" : "Λάθος"}.</b> ` +
-            `${mathToHtml(q.explanation)}</div></div>`
-          );
-        })
+        .map(
+          (q, qi) =>
+            `<div class="item print-item">` +
+            questionRow(qi + 1, q.statement, DIFFICULTY_LABEL[q.difficulty]) +
+            `<p class="tfa">Απάντηση: ${q.answer ? "Σωστό" : "Λάθος"}</p>` +
+            `<p class="ex">${mathToHtml(q.explanation)}</p></div>`,
+        )
         .join("");
-      return `<h1>${escapeHtml(material.title)}</h1>${qs}`;
+      return (
+        titleHtml(
+          material.title,
+          `${material.questions.length} δηλώσεις · με απάντηση και εξήγηση`,
+        ) + qs
+      );
     }
 
     case "flashcards": {
-      const cards = material.cards
-        .map((c, ci) => {
-          return (
-            `<div class="q"><p class="qh"><b>${ci + 1}.</b> ${mathToHtml(c.front)} ` +
-            `<span class="diff">${escapeHtml(c.difficulty)}</span></p>` +
-            `<div class="ans">${mathToHtml(c.back)}</div></div>`
-          );
-        })
+      const rows = material.cards
+        .map(
+          (c, ci) =>
+            `<tr class="print-item"><td class="n">${ci + 1}</td>` +
+            `<td class="f">${mathToHtml(c.front)}</td><td>${mathToHtml(c.back)}</td></tr>`,
+        )
         .join("");
-      return `<h1>${escapeHtml(material.title)}</h1>${cards}`;
+      return (
+        titleHtml(
+          material.title,
+          `${material.cards.length} κάρτες · μπροστινή και πίσω όψη`,
+        ) +
+        `<table class="cards"><thead><tr><th>#</th><th>Μπροστινή όψη</th><th>Πίσω όψη</th></tr></thead>` +
+        `<tbody>${rows}</tbody></table>`
+      );
     }
   }
 }
 
-const PRINT_CSS = `
-@page { margin: 18mm 16mm; }
+function printCss(label: string): string {
+  // Printed by the browser where supported (Chromium 131+); ignored elsewhere.
+  const footerLabel = `StudyArc · ${label}`.replace(/"/g, '\\"');
+  return `
+@page {
+  size: A4;
+  margin: 15mm 17mm;
+  @bottom-left { content: "${footerLabel}"; font: 10px Inter, "Segoe UI", sans-serif; color: #71717a; }
+  @bottom-right { content: counter(page) " / " counter(pages); font: 10px Inter, "Segoe UI", sans-serif; color: #71717a; }
+}
 * { box-sizing: border-box; }
-body { font-family: "Segoe UI", system-ui, -apple-system, sans-serif; color: #1b2430; line-height: 1.55; font-size: 12pt; margin: 0; }
-.doc-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; border-bottom: 2px solid #1e3a5f; padding-bottom: 8px; margin-bottom: 16px; }
-.brand { font-weight: 800; font-size: 16pt; color: #1e3a5f; letter-spacing: -0.01em; }
-.meta { font-size: 9.5pt; color: #6e6a60; text-align: right; }
-h1 { font-size: 17pt; margin: 0 0 12px; }
-h2 { font-size: 13pt; color: #1e3a5f; margin: 16px 0 6px; }
-p { margin: 6px 0; }
+html, body { background: #fff; }
+body { font-family: Inter, "Segoe UI", system-ui, sans-serif; color: #09090b; font-size: 13px; line-height: 19px; margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+h1, h2, p, ul { margin: 0; }
+.ph { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding-bottom: 12px; border-bottom: 1px solid #09090b; margin-bottom: 20px; }
+.ph .b { font-size: 14px; font-weight: 600; }
+.ph .r { text-align: right; font-size: 11px; line-height: 16px; color: #52525b; }
+.ph .r strong { color: #09090b; font-weight: 600; }
+.title { margin-bottom: 20px; }
+.pt { font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em; }
+.pmeta { font-size: 11px; line-height: 16px; color: #52525b; margin-top: 2px; }
+h2 { font-size: 14px; line-height: 20px; font-weight: 600; margin: 0 0 6px; }
+section { margin-bottom: 18px; }
+section > p { margin-bottom: 8px; }
 .t { white-space: pre-wrap; }
-.formula { background: #f7f5f0; border: 1px solid #e7e3da; border-radius: 6px; padding: 8px 10px; margin: 8px 0; overflow-x: hidden; }
-.fexp { color: #6e6a60; font-size: 10pt; margin-top: 4px; }
-ul, ol { margin: 6px 0; padding-left: 22px; }
+b { font-weight: 600; }
+ul { padding-left: 20px; }
 li { margin: 4px 0; }
-.q { border-top: 1px solid #e7e3da; padding: 10px 0; page-break-inside: avoid; break-inside: avoid; }
-.qh { margin: 0 0 6px; }
-.diff { font-size: 8.5pt; color: #6e6a60; border: 1px solid #e7e3da; border-radius: 10px; padding: 0 6px; margin-left: 4px; }
-.opts { list-style: none; padding-left: 0; }
-.opt { border: 1px solid #e7e3da; border-radius: 6px; padding: 5px 9px; margin: 4px 0; }
-.opt.correct { background: #e3f2ea; border-color: #2f7d5b; }
-.let { font-weight: 700; color: #1e3a5f; }
-.tick { color: #2f7d5b; font-weight: 700; }
-.ans { background: #eef2f7; border-radius: 6px; padding: 7px 10px; margin-top: 6px; font-size: 11pt; }
-.katex { font-size: 1.04em; }
+.formula { background: #f4f4f5; border-radius: 4px; padding: 8px 12px; margin: 8px 0; }
+.fexp { color: #52525b; font-size: 12px; line-height: 18px; margin-top: 4px; }
+.item { border: 1px solid #d4d4d8; border-radius: 6px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+.qrow { display: flex; gap: 8px; align-items: flex-start; }
+.qrow .n { font-weight: 600; color: #52525b; flex: none; }
+.qrow .q { font-weight: 500; flex: 1; min-width: 0; }
+.diff { font-size: 10px; line-height: 14px; color: #52525b; border: 1px solid #d4d4d8; border-radius: 4px; padding: 1px 6px; flex: none; }
+.opts { display: flex; flex-direction: column; gap: 4px; padding-left: 20px; }
+.o { display: flex; gap: 8px; align-items: center; color: #3f3f46; }
+.o .l { width: 18px; height: 18px; border: 1px solid #a1a1aa; border-radius: 3px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; flex: none; }
+.o.c { color: #09090b; font-weight: 600; }
+.o.c .l { background: #09090b; border-color: #09090b; color: #fff; }
+.mk { font-size: 11px; font-weight: 600; margin-left: 4px; flex: none; }
+.ex { background: #f4f4f5; border-radius: 4px; padding: 8px 12px; font-size: 12px; line-height: 18px; color: #27272a; margin-left: 20px; }
+.tfa { padding-left: 20px; font-weight: 600; }
+.cards { width: 100%; border-collapse: collapse; font-size: 12px; line-height: 18px; }
+.cards thead { display: table-header-group; }
+.cards th { text-align: left; font-size: 11px; font-weight: 600; color: #52525b; padding: 6px 10px; border-bottom: 1px solid #09090b; }
+.cards td { vertical-align: top; padding: 10px; border-bottom: 1px solid #d4d4d8; }
+.cards td.n { width: 28px; font-weight: 600; color: #52525b; padding-right: 0; }
+.cards td.f { width: 44%; font-weight: 500; }
+.print-item { break-inside: avoid; page-break-inside: avoid; }
+.katex { font-size: 1.04em; color: inherit; }
 .katex-display { margin: 6px 0; text-align: left; }
+.katex-display > .katex { text-align: left; }
 `;
+}
 
 function buildPrintDoc(material: GeneratedMaterial, fileName: string): string {
   const label = MODE_LABEL[material.mode];
-  const date = new Date().toLocaleDateString("el-GR", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  const now = new Date();
+  const date =
+    `${String(now.getDate()).padStart(2, "0")}/` +
+    `${String(now.getMonth() + 1).padStart(2, "0")}/${now.getFullYear()}`;
   // Print after the KaTeX fonts have settled so math glyphs aren't missing.
   const printScript =
     `window.onload=function(){var go=function(){try{window.focus();window.print();}catch(e){}};` +
@@ -200,10 +254,11 @@ function buildPrintDoc(material: GeneratedMaterial, fileName: string): string {
   return (
     `<!doctype html><html lang="el"><head><meta charset="utf-8">` +
     `<title>${escapeHtml(fileName)} — ${label}</title>` +
+    `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">` +
     `<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.17.0/dist/katex.min.css">` +
-    `<style>${PRINT_CSS}</style></head><body>` +
-    `<header class="doc-head"><div class="brand">StudyBox</div>` +
-    `<div class="meta">${label}<br>${escapeHtml(fileName)} · ${date}</div></header>` +
+    `<style>${printCss(label)}</style></head><body>` +
+    `<header class="ph"><span class="b">StudyArc</span>` +
+    `<span class="r"><strong>${label}</strong><br>${escapeHtml(fileName)}<br>${date}</span></header>` +
     `<main>${bodyHtml(material)}</main>` +
     `<script>${printScript}</script></body></html>`
   );

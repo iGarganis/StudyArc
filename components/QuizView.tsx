@@ -2,13 +2,20 @@
 
 import { useState } from "react";
 import type { QuizMaterial } from "@/lib/ai/types";
+import { optionLetter } from "@/lib/study";
 import { MathText } from "./MathText";
-import { StudyCard } from "./StudyCard";
+import { AnswerButton, Explanation, QuestionCard, type AnswerState } from "./QuestionParts";
+import { ScoreBar } from "./ScoreBar";
 
-/** Greek capital letter for an option index (0 → Α, 1 → Β, ...). */
-const letter = (i: number) => String.fromCharCode(913 + i);
-
-export function QuizView({ data }: { data: QuizMaterial }) {
+export function QuizView({
+  data,
+  scoreSlot,
+  showScore,
+}: {
+  data: QuizMaterial;
+  scoreSlot: HTMLElement | null;
+  showScore: boolean;
+}) {
   const [answers, setAnswers] = useState<(number | null)[]>(() =>
     data.questions.map(() => null),
   );
@@ -25,60 +32,70 @@ export function QuizView({ data }: { data: QuizMaterial }) {
     );
 
   return (
-    <StudyCard title={data.title}>
-      <div className="sb-score">
-        Σκορ: {score} / {data.questions.length}
-        {answered === data.questions.length
-          ? " — ολοκληρώθηκε ✓"
-          : ` (${answered} απαντημένες)`}
-      </div>
+    <div className="flex flex-col gap-4">
+      <ScoreBar
+        slot={scoreSlot}
+        show={showScore}
+        score={score}
+        answered={answered}
+        total={data.questions.length}
+        progressLabel="Απαντημένες ερωτήσεις"
+      />
 
       {data.questions.map((q, qi) => {
         const chosen = answers[qi];
         const locked = chosen !== null;
         return (
-          <div key={qi} className="sb-q">
-            <div>
-              <strong>{qi + 1}.</strong> <MathText text={q.question} />
-              <span className="sb-diff">{q.difficulty}</span>
-            </div>
-
-            <div className="sb-opts">
+          <QuestionCard
+            key={qi}
+            number={qi + 1}
+            difficulty={q.difficulty}
+            prompt={<MathText text={q.question} />}
+          >
+            <div
+              role="group"
+              aria-label={`Επιλογές ερώτησης ${qi + 1}`}
+              className="flex flex-col gap-2"
+            >
               {q.options.map((opt, oi) => {
-                const cls =
-                  "sb-btn sb-opt" +
-                  (locked && oi === q.correctIndex ? " correct" : "") +
-                  (locked && oi === chosen && oi !== q.correctIndex ? " wrong" : "");
+                let state: AnswerState = "idle";
+                if (locked) {
+                  if (oi === q.correctIndex) state = "correct";
+                  else if (oi === chosen) state = "wrong";
+                  else state = "dim";
+                }
                 return (
-                  <button
+                  <AnswerButton
                     key={oi}
-                    className={cls}
-                    disabled={locked}
+                    state={state}
+                    letter={optionLetter(oi)}
+                    tag={state === "correct" ? "Σωστή" : "Η απάντησή σας"}
                     onClick={() => pick(qi, oi)}
                   >
-                    <span className="sb-letter">{letter(oi)}.</span>
-                    <span>
-                      <MathText text={opt} />
-                    </span>
-                  </button>
+                    <MathText text={opt} />
+                  </AnswerButton>
                 );
               })}
             </div>
 
             {locked && (
-              <div className="sb-exp">
-                <MathText text={q.explanations[chosen] ?? ""} />
+              <Explanation>
+                <p>
+                  <MathText text={q.explanations[chosen] ?? ""} />
+                </p>
                 {chosen !== q.correctIndex && (
-                  <div className="sb-exp-correct">
-                    Σωστή απάντηση ({letter(q.correctIndex)}):{" "}
+                  <p>
+                    <b className="font-semibold">
+                      Σωστή απάντηση ({optionLetter(q.correctIndex)}):
+                    </b>{" "}
                     <MathText text={q.explanations[q.correctIndex] ?? ""} />
-                  </div>
+                  </p>
                 )}
-              </div>
+              </Explanation>
             )}
-          </div>
+          </QuestionCard>
         );
       })}
-    </StudyCard>
+    </div>
   );
 }

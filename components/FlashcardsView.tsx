@@ -2,12 +2,14 @@
 
 import { useMemo, useState } from "react";
 import type { FlashcardMaterial } from "@/lib/ai/types";
+import { DIFFICULTY_LABEL } from "@/lib/study";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { MathText } from "./MathText";
-import { StudyCard } from "./StudyCard";
 
 export function FlashcardsView({ data }: { data: FlashcardMaterial }) {
-  const total = data.cards.length;
-
   // The deck currently being studied (indices into data.cards).
   const [order, setOrder] = useState<number[]>(() =>
     data.cards.map((_, i) => i),
@@ -47,88 +49,108 @@ export function FlashcardsView({ data }: { data: FlashcardMaterial }) {
     restart(next);
   };
 
+  const shownPos = Math.min(pos + 1, order.length);
+
+  const header = (
+    <div className="flex flex-col gap-2">
+      <div className="flex justify-between font-medium tabular-nums">
+        <span>
+          Κάρτα {shownPos} / {order.length}
+        </span>
+        <span>Γνωστές: {known}</span>
+      </div>
+      <Progress
+        aria-label="Πρόοδος καρτών"
+        value={shownPos}
+        max={order.length}
+      />
+    </div>
+  );
+
   if (done) {
     const wrong = order.filter((i) => verdicts[i] === false);
     const passed = order.length - wrong.length;
     return (
-      <StudyCard title={data.title}>
-        <div className="sb-fc-done">
-          <div className="sb-fc-done-score">
-            Ήξερες <strong>{passed}</strong> από <strong>{order.length}</strong>
+      <div className="flex flex-col gap-5">
+        {header}
+        <Card className="flex min-h-60 flex-col justify-center gap-4 p-6">
+          <div className="flex flex-col gap-1">
+            <p role="status" className="text-xl font-semibold tabular-nums">
+              Γνωρίζατε {passed} από {order.length}
+            </p>
+            <p className="text-muted-foreground">
+              {wrong.length > 0
+                ? "Μπορείτε να επαναλάβετε μόνο τις κάρτες που δεν γνωρίζατε ή να ξεκινήσετε από την αρχή."
+                : "Μπορείτε να ξεκινήσετε από την αρχή ή με ανακατεμένη σειρά."}
+            </p>
           </div>
-          <div className="sb-fc-done-actions">
+          <div className="flex flex-wrap gap-2">
             {wrong.length > 0 && (
-              <button
-                className="sb-btn sb-btn-primary"
-                onClick={() => restart(wrong)}
-              >
+              <Button onClick={() => restart(wrong)}>
                 Επανάληψη λαθών ({wrong.length})
-              </button>
+              </Button>
             )}
-            <button
-              className="sb-btn"
+            <Button
+              variant="outline"
               onClick={() => restart(data.cards.map((_, i) => i))}
             >
               Από την αρχή
-            </button>
-            <button className="sb-btn" onClick={shuffle}>
-              Ανακάτεψε
-            </button>
+            </Button>
+            <Button variant="outline" onClick={shuffle}>
+              Ανακάτεμα
+            </Button>
           </div>
-        </div>
-      </StudyCard>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <StudyCard title={data.title}>
-      <div className="sb-fc-bar">
-        <span>
-          Κάρτα {pos + 1} / {order.length}
-        </span>
-        <span className="sb-fc-known">✓ {known}</span>
-      </div>
-      <div className="sb-fc-progress">
-        <span style={{ width: `${(pos / order.length) * 100}%` }} />
-      </div>
+    <div className="flex flex-col gap-5">
+      {header}
+      <div className="flex flex-col gap-3">
+        <button
+          type="button"
+          onClick={() => setFlipped((f) => !f)}
+          aria-label={`Κάρτα, όψη ${flipped ? "απάντησης" : "ερώτησης"}. Πατήστε για αναστροφή.`}
+          className={
+            "flex min-h-60 w-full cursor-pointer flex-col gap-4 rounded-lg border px-5 pt-4 pb-6 text-center " +
+            (flipped ? "bg-muted" : "bg-card")
+          }
+        >
+          <span className="flex w-full items-center justify-between">
+            <span className="text-xs font-medium text-muted-foreground">
+              {flipped ? "Απάντηση" : "Ερώτηση"}
+            </span>
+            <Badge
+              variant="secondary"
+              className={flipped ? "bg-background" : ""}
+            >
+              {DIFFICULTY_LABEL[card!.difficulty]}
+            </Badge>
+          </span>
+          <span className="flex w-full min-w-0 flex-1 items-center justify-center px-2 text-xl leading-[30px] font-medium">
+            {/* Display formulas follow the card's centered text here. */}
+            <span className="min-w-0 [overflow-wrap:anywhere] [&_.katex-display>.katex]:text-center!">
 
-      <button
-        type="button"
-        className={"sb-fc-card" + (flipped ? " flipped" : "")}
-        onClick={() => setFlipped((f) => !f)}
-        aria-label={flipped ? "Δείξε την ερώτηση" : "Δείξε την απάντηση"}
-      >
-        <span className="sb-fc-side-label">
-          {flipped ? "Απάντηση" : "Ερώτηση"}
-          <span className="sb-diff">{card!.difficulty}</span>
-        </span>
-        <span className="sb-fc-content">
-          <MathText text={flipped ? card!.back : card!.front} />
-        </span>
-        {!flipped && (
-          <span className="sb-fc-hint">Πάτησε για την απάντηση</span>
-        )}
-      </button>
+              <MathText text={flipped ? card!.back : card!.front} />
+            </span>
+          </span>
+        </button>
 
-      <div className="sb-fc-actions">
         {flipped ? (
-          <>
-            <button className="sb-btn sb-fc-no" onClick={() => answer(false)}>
-              Δεν το ήξερα
-            </button>
-            <button className="sb-btn sb-fc-yes" onClick={() => answer(true)}>
-              Το ήξερα
-            </button>
-          </>
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="outline" onClick={() => answer(false)}>
+              Δεν το γνώριζα
+            </Button>
+            <Button onClick={() => answer(true)}>Το γνώριζα</Button>
+          </div>
         ) : (
-          <button
-            className="sb-btn sb-btn-primary sb-fc-flip"
-            onClick={() => setFlipped(true)}
-          >
-            Δείξε την απάντηση
-          </button>
+          <Button className="w-full" onClick={() => setFlipped(true)}>
+            Εμφάνιση απάντησης
+          </Button>
         )}
       </div>
-    </StudyCard>
+    </div>
   );
 }

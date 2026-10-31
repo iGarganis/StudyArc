@@ -1,0 +1,2729 @@
+<!doctype html>
+<html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StudyBox Redesign</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+<style>
+body{margin:0}
+.board{font-family:Inter,ui-sans-serif,system-ui,sans-serif;background:#f4f4f5;padding:48px;display:flex;gap:48px;align-items:flex-start;box-sizing:border-box;flex-wrap:wrap}
+.cap{font:500 12px/16px Inter,sans-serif;color:#52525b;margin:0 0 12px}
+.sb{--background:#ffffff;--foreground:#09090b;--card:#ffffff;--primary:#18181b;--primary-foreground:#fafafa;--muted:#f4f4f5;--muted-foreground:#71717a;--border:#e4e4e7;--ring:#a1a1aa;--destructive:#dc2626;background:var(--background);color:var(--foreground);font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:14px;line-height:20px;outline:1px solid #d4d4d8;box-sizing:border-box;-webkit-font-smoothing:antialiased;position:relative;overflow:hidden}
+.sb[data-theme=dark]{--background:#09090b;--foreground:#fafafa;--card:#09090b;--primary:#fafafa;--primary-foreground:#18181b;--muted:#27272a;--muted-foreground:#a1a1aa;--border:#27272a;--ring:#52525b;--destructive:#ef4444;outline-color:#3f3f46}
+.sb *{box-sizing:border-box}
+.sb h1,.sb h2,.sb h3,.sb p,.sb ul,.sb ol{margin:0}
+.bar{height:56px;border-bottom:1px solid var(--border);padding:0 24px;background:var(--background);display:flex;position:relative;z-index:2}
+.wrap{width:100%;max-width:768px;margin:0 auto}
+.bar .wrap{display:flex;align-items:center;gap:4px}
+.brand{font-size:14px;font-weight:600;color:var(--foreground);text-decoration:none;margin-right:auto}
+.usage{font-size:12px;line-height:16px;color:var(--muted-foreground);font-variant-numeric:tabular-nums;margin-right:8px;background:none;border:0;padding:4px;font-family:inherit;border-radius:4px;position:relative}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:36px;padding:0 16px;border-radius:6px;font:500 14px/20px Inter,ui-sans-serif,system-ui,sans-serif;border:1px solid transparent;background:transparent;color:var(--foreground);white-space:nowrap;cursor:pointer;text-decoration:none;flex:none}
+.btn-sm{height:32px;padding:0 12px}
+.btn-icon{width:32px;padding:0}
+.btn-primary{background:var(--primary);color:var(--primary-foreground)}
+.btn-outline{border-color:var(--border);background:var(--background)}
+.btn-block{width:100%}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.focus{outline:2px solid var(--ring);outline-offset:2px}
+.card{border:1px solid var(--border);border-radius:8px;background:var(--card)}
+.muted{color:var(--muted-foreground)}
+.sep{height:1px;background:var(--border)}
+.ico{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.badge{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:6px;font-size:12px;line-height:16px;font-weight:500;background:var(--muted);color:var(--foreground);white-space:nowrap;flex:none}
+.tabs{display:flex;gap:4px;padding:4px;background:var(--muted);border-radius:8px;overflow-x:auto;scrollbar-width:none}
+.tab{height:32px;padding:0 12px;border-radius:6px;font:500 14px/20px Inter,ui-sans-serif,system-ui,sans-serif;color:var(--muted-foreground);display:inline-flex;gap:6px;align-items:center;border:1px solid transparent;background:transparent;white-space:nowrap;flex:none;cursor:pointer}
+.tab[aria-selected=true]{background:var(--background);color:var(--foreground);border-color:var(--border)}
+.tab .ico{width:14px;height:14px}
+.filerow{display:flex;align-items:center;gap:12px;padding:12px 12px 12px 16px;border:1px solid var(--border);border-radius:8px}
+.filerow .name{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.alert{border:1px solid var(--destructive);border-radius:8px;padding:12px 16px;display:flex;gap:12px;align-items:flex-start}
+.alert .ico{color:var(--destructive);margin-top:2px}
+.alert-title{font-weight:500;color:var(--destructive)}
+.prog{height:4px;background:var(--muted);border-radius:2px;overflow:hidden}
+.prog>span{display:block;height:100%;background:var(--primary)}
+.scorebar{position:sticky;top:56px;background:var(--background);border-bottom:1px solid var(--border);padding:12px 24px;z-index:1}
+.score{font-size:14px;font-weight:500;font-variant-numeric:tabular-nums}
+.opt{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--border);border-radius:6px;width:100%;text-align:left;background:var(--background);color:var(--foreground);font:400 14px/20px Inter,ui-sans-serif,system-ui,sans-serif;cursor:pointer}
+.opt .let{width:24px;height:24px;border-radius:4px;border:1px solid var(--border);display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex:none}
+.opt .txt{flex:1;min-width:0}
+.opt .tag{margin-left:auto;font-size:12px;line-height:16px;font-weight:500;display:inline-flex;gap:4px;align-items:center;white-space:nowrap;flex:none}
+.opt.ok{border-color:var(--foreground);cursor:default}
+.opt.ok .let{border-color:var(--foreground);background:var(--foreground);color:var(--background)}
+.opt.bad{border-color:var(--destructive);cursor:default}
+.opt.bad .let{border-color:var(--destructive);color:var(--destructive)}
+.opt.bad .tag{color:var(--destructive)}
+.opt.dim{color:var(--muted-foreground);cursor:default}
+.expl{background:var(--muted);border-radius:6px;padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.expl b{font-weight:600}
+.m{font-family:"KaTeX_Main","Latin Modern Roman","Cambria Math","Times New Roman",serif;font-size:1.12em;white-space:nowrap}
+.m i{font-style:italic}
+.m b{font-weight:700;font-style:normal}
+.mb{background:var(--muted);border-radius:6px;padding:16px;overflow-x:auto;text-align:left;font-size:18px;line-height:28px}
+.mat{display:inline-block;vertical-align:middle;position:relative;padding:0 7px;margin:0 2px}
+.mat::before,.mat::after{content:"";position:absolute;top:0;bottom:0;width:4px;border:1.2px solid currentColor}
+.mat::before{left:0;border-right:0}
+.mat::after{right:0;border-left:0}
+.mat>span{display:inline-grid;column-gap:14px;row-gap:0;text-align:center;line-height:1.35}
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;font-size:.9em;line-height:1.2;margin:0 2px}
+.frac>span:first-child{border-bottom:1px solid currentColor;padding:0 3px}
+.read{font-size:16px;line-height:28px}
+.overlay{position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:5}
+.sheet{position:absolute;top:0;right:0;bottom:0;width:360px;background:var(--background);border-left:1px solid var(--border);box-shadow:0 0 16px rgba(0,0,0,.08);z-index:6;display:flex;flex-direction:column}
+.hrow{display:flex;align-items:center;gap:8px;padding:8px 8px 8px 12px;border-radius:6px}
+.hrow .t{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hrow.active{background:var(--muted)}
+.grp{font-size:12px;line-height:16px;font-weight:500;color:var(--muted-foreground);padding:16px 12px 4px}
+.tip{position:absolute;top:calc(100% + 6px);right:0;width:260px;background:var(--primary);color:var(--primary-foreground);border-radius:6px;padding:8px 12px;font-size:12px;line-height:16px;text-align:left;z-index:4;white-space:normal}
+
+html,body{margin:0;background:#d4d4d8}
+.abd{margin:0 0 64px}
+.abt{font:600 28px/36px Inter,sans-serif;color:#09090b;margin:0;padding:48px 48px 0;background:#f4f4f5}
+#ab-Print .abt,#ab-Tokens .abt{background:#e4e4e7}
+#ab-Tokens .abt{background:#fff}
+.board,.pboard,.tb{width:max-content}
+#ab-Main{
+body{margin:0}
+.board{font-family:Inter,ui-sans-serif,system-ui,sans-serif;background:#f4f4f5;padding:48px;display:flex;gap:48px;align-items:flex-start;box-sizing:border-box}
+.cap{font:500 12px/16px Inter,sans-serif;color:#52525b;margin:0 0 12px}
+.sb{--background:#ffffff;--foreground:#09090b;--card:#ffffff;--primary:#18181b;--primary-foreground:#fafafa;--muted:#f4f4f5;--muted-foreground:#71717a;--border:#e4e4e7;--ring:#a1a1aa;--destructive:#dc2626;background:var(--background);color:var(--foreground);font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:14px;line-height:20px;outline:1px solid #d4d4d8;box-sizing:border-box;-webkit-font-smoothing:antialiased;position:relative;overflow:hidden}
+.sb[data-theme=dark]{--background:#09090b;--foreground:#fafafa;--card:#09090b;--primary:#fafafa;--primary-foreground:#18181b;--muted:#27272a;--muted-foreground:#a1a1aa;--border:#27272a;--ring:#52525b;--destructive:#ef4444;outline-color:#3f3f46}
+.sb *{box-sizing:border-box}
+.sb h1,.sb h2,.sb h3,.sb p{margin:0}
+.bar{height:56px;border-bottom:1px solid var(--border);padding:0 24px;background:var(--background);display:flex}
+.wrap{width:100%;max-width:768px;margin:0 auto}
+.bar .wrap{display:flex;align-items:center;gap:4px}
+.brand{font-size:14px;font-weight:600;color:var(--foreground);text-decoration:none;margin-right:auto}
+.usage{font-size:12px;line-height:16px;color:var(--muted-foreground);font-variant-numeric:tabular-nums;margin-right:8px;background:none;border:0;padding:4px;font-family:inherit;border-radius:4px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:36px;padding:0 16px;border-radius:6px;font:500 14px/20px Inter,ui-sans-serif,system-ui,sans-serif;border:1px solid transparent;background:transparent;color:var(--foreground);white-space:nowrap;cursor:pointer;text-decoration:none}
+.btn-sm{height:32px;padding:0 12px}
+.btn-icon{width:36px;padding:0}
+.btn-primary{background:var(--primary);color:var(--primary-foreground)}
+.btn-outline{border-color:var(--border);background:var(--background)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.card{border:1px solid var(--border);border-radius:8px;background:var(--card)}
+.muted{color:var(--muted-foreground)}
+.sep{height:1px;background:var(--border)}
+.ico{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+}
+#ab-Generating{body{margin:0}}
+#ab-Error{body{margin:0}}
+#ab-UploadStates{body{margin:0}.lbl{font-size:12px;line-height:16px;font-weight:500;color:var(--muted-foreground);margin:0 0 8px}}
+#ab-Summary{body{margin:0}.sec{display:flex;flex-direction:column;gap:12px;padding:24px 0}.sec h3{font-size:16px;line-height:24px;font-weight:600}.fx{display:flex;flex-direction:column;gap:6px}.fx .note{font-size:14px;line-height:20px;color:var(--muted-foreground)}.read ul,.read ol{padding-left:20px;display:flex;flex-direction:column;gap:6px}}
+#ab-Quiz{body{margin:0}.q{padding:20px;display:flex;flex-direction:column;gap:16px}.qh{display:flex;gap:12px;align-items:flex-start}.qn{font-weight:600;color:var(--muted-foreground);font-variant-numeric:tabular-nums;flex:none;font-size:16px;line-height:24px}.qt{flex:1;min-width:0;font-size:16px;line-height:24px;font-weight:500}.opts{display:flex;flex-direction:column;gap:8px}}
+#ab-TrueFalse{body{margin:0}.q{padding:20px;display:flex;flex-direction:column;gap:16px}.qh{display:flex;gap:12px;align-items:flex-start}.qn{font-weight:600;color:var(--muted-foreground);font-variant-numeric:tabular-nums;flex:none;font-size:16px;line-height:24px}.qt{flex:1;min-width:0;font-size:16px;line-height:24px;font-weight:500}.tf{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.tf .opt{justify-content:flex-start;font-weight:500}}
+#ab-Cards{body{margin:0}.fc{min-height:240px;width:100%;padding:16px 20px 24px;display:flex;flex-direction:column;gap:16px;text-align:center;font:inherit;color:var(--foreground);cursor:pointer;background:var(--card)}.fc .top{display:flex;justify-content:space-between;align-items:center;width:100%}.fc .side{font-size:12px;line-height:16px;font-weight:500;color:var(--muted-foreground)}.fc .body{flex:1;display:flex;align-items:center;justify-content:center;font-size:20px;line-height:30px;font-weight:500;padding:0 8px}.fc.back{background:var(--muted)}.meta{display:flex;justify-content:space-between;font-variant-numeric:tabular-nums;font-weight:500}}
+#ab-History{body{margin:0}.hb{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;background:none;border:0;padding:0;font:inherit;color:inherit;cursor:pointer;border-radius:4px}.hb .t{max-width:100%}.hb .f{font-size:12px;line-height:16px;color:var(--muted-foreground);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}.trash{color:var(--muted-foreground)}.trash.hot{color:var(--destructive)}}
+#ab-Mobile{body{margin:0}.mbar{padding:0 12px 0 16px}.mbar .btn-icon{width:40px;height:40px}.q{padding:16px;display:flex;flex-direction:column;gap:12px}.qh{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}.qt{flex:1 1 100%;font-size:16px;line-height:24px;font-weight:500}.opt .tag{font-size:12px}}
+#ab-Print{
+body{margin:0}
+.pboard{font-family:Inter,ui-sans-serif,system-ui,sans-serif;background:#e4e4e7;padding:48px;display:flex;gap:48px;align-items:flex-start;box-sizing:border-box}
+.cap{font:500 12px/16px Inter,sans-serif;color:#52525b;margin:0 0 12px}
+.page{width:794px;height:1123px;background:#fff;color:#09090b;box-sizing:border-box;padding:56px 64px;font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:13px;line-height:19px;display:flex;flex-direction:column;gap:20px;overflow:hidden}
+.page *{box-sizing:border-box}
+.page h1,.page p,.page ol{margin:0}
+.ph{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:12px;border-bottom:1px solid #09090b}
+.ph .b{font-size:14px;font-weight:600}
+.ph .r{text-align:right;font-size:11px;line-height:16px;color:#52525b}
+.ph .r strong{color:#09090b;font-weight:600}
+.pt{font-size:20px;line-height:28px;font-weight:600;letter-spacing:-.01em}
+.pmeta{font-size:11px;line-height:16px;color:#52525b;margin-top:2px}
+.item{border:1px solid #d4d4d8;border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;break-inside:avoid}
+.qrow{display:flex;gap:8px;align-items:flex-start}
+.qrow .n{font-weight:600;color:#52525b;flex:none}
+.qrow .q{font-weight:500;flex:1}
+.diff{font-size:10px;line-height:14px;color:#52525b;border:1px solid #d4d4d8;border-radius:4px;padding:1px 6px;flex:none}
+.opts{display:flex;flex-direction:column;gap:4px;padding-left:20px}
+.o{display:flex;gap:8px;align-items:center;color:#3f3f46}
+.o .l{width:18px;height:18px;border:1px solid #a1a1aa;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex:none}
+.o.c{color:#09090b;font-weight:600}
+.o.c .l{background:#09090b;border-color:#09090b;color:#fff}
+.o .mk{font-size:11px;font-weight:600;margin-left:4px}
+.ex{background:#f4f4f5;border-radius:4px;padding:8px 12px;font-size:12px;line-height:18px;color:#27272a;margin-left:20px}
+.ex b{color:#09090b}
+.m{font-family:"KaTeX_Main","Latin Modern Roman","Cambria Math","Times New Roman",serif;font-size:1.12em;white-space:nowrap}
+.m i{font-style:italic}.m b{font-weight:700}
+.mat{display:inline-block;vertical-align:middle;position:relative;padding:0 6px;margin:0 2px}
+.mat::before,.mat::after{content:"";position:absolute;top:0;bottom:0;width:3px;border:1px solid currentColor}
+.mat::before{left:0;border-right:0}.mat::after{right:0;border-left:0}
+.mat>span{display:inline-grid;column-gap:10px;text-align:center;line-height:1.3}
+.cards{width:100%;border-collapse:collapse;font-size:12px;line-height:18px}
+.cards th{text-align:left;font-size:11px;font-weight:600;color:#52525b;padding:6px 10px;border-bottom:1px solid #09090b}
+.cards td{vertical-align:top;padding:10px;border-bottom:1px solid #d4d4d8}
+.cards td.n{width:28px;font-weight:600;color:#52525b;padding-right:0}
+.cards td.f{width:44%;font-weight:500}
+.foot{margin-top:auto;display:flex;justify-content:space-between;font-size:10px;color:#71717a;border-top:1px solid #d4d4d8;padding-top:8px}
+}
+#ab-Tokens{
+body{margin:0}
+.tb{font-family:Inter,ui-sans-serif,system-ui,sans-serif;background:#ffffff;color:#09090b;padding:48px;display:flex;gap:40px;align-items:flex-start;box-sizing:border-box;width:1280px;font-size:14px;line-height:20px}
+.tb *{box-sizing:border-box}
+.tb h2,.tb h3,.tb p{margin:0}
+pre{margin:0;background:#f4f4f5;border:1px solid #e4e4e7;border-radius:8px;padding:20px;font:12px/18px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#09090b;white-space:pre;overflow-x:auto}
+.sw{display:grid;grid-template-columns:150px 1fr 1fr;border:1px solid #e4e4e7;border-radius:8px;overflow:hidden}
+.sw>div{padding:8px 12px;border-bottom:1px solid #e4e4e7;display:flex;align-items:center;gap:8px;font-size:12px;line-height:16px;font-variant-numeric:tabular-nums}
+.sw .h{font-weight:600;background:#f4f4f5}
+.chip{width:20px;height:20px;border-radius:4px;border:1px solid #d4d4d8;flex:none}
+}
+</style></head><body>
+<section id="ab-Main" class="abd"><h2 class="abt">1 · Αρχική</h2>
+
+<div class="board">
+
+<div style="display: flex; flex-direction: column">
+<p class="cap">Light</p>
+<div class="sb" data-theme="light" style="width: 1024px; min-height: 860px">
+<header class="bar">
+<div class="wrap">
+<a class="brand" href="#">StudyBox</a>
+<button class="usage" type="button" aria-describedby="usage-tip">12/250 Req · 34k/250k Tokens</button>
+<button class="btn btn-sm" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg>Ιστορικό</button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Εναλλαγή θέματος" style="width: 32px">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+
+</button>
+<button class="btn btn-sm btn-outline" type="button" style="margin-left: 4px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>Νέα μελέτη</button>
+</div>
+</header>
+<main style="padding: 48px 24px 64px">
+<div class="wrap" style="display: flex; flex-direction: column; gap: 32px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<h1 style="font-size: 30px; line-height: 36px; font-weight: 600; letter-spacing: -0.02em">Υλικό μελέτης από τις διαλέξεις σας</h1>
+<p class="muted" style="font-size: 16px; line-height: 24px">Ανεβάστε ένα PDF διάλεξης και δημιουργήστε Σύνοψη, Απλή εξήγηση, Quiz, Σωστό / Λάθος και Κάρτες στα ελληνικά.</p>
+</div>
+<label class="card" style="height: 160px; padding: 24px; display: flex; align-items: center; gap: 16px; cursor: pointer">
+<input class="sr" type="file" accept="application/pdf">
+<span style="width: 40px; height: 40px; border-radius: 6px; background: var(--muted); display: inline-flex; align-items: center; justify-content: center; flex: none"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" style="width: 20px; height: 20px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M17 8l-5-5-5 5"></path><path d="M12 3v12"></path></svg></span>
+<span style="display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0">
+<span style="font-size: 16px; line-height: 24px; font-weight: 500">Σύρετε ένα PDF εδώ</span>
+<span class="muted">PDF, έως 20 MB</span>
+</span>
+<span class="btn btn-outline">Επιλογή αρχείου</span>
+</label>
+<section style="display: flex; flex-direction: column; gap: 8px">
+<h2 style="font-size: 16px; line-height: 24px; font-weight: 600">Τι θα λάβετε</h2>
+<div style="display: flex; flex-direction: column">
+
+<div style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--border)">
+<span style="font-weight: 500">Σύνοψη</span>
+<span class="muted">Οργανωμένα βασικά σημεία και τύποι.</span>
+</div>
+
+<div style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--border)">
+<span style="font-weight: 500">Απλή εξήγηση</span>
+<span class="muted">Η ύλη με απλά λόγια.</span>
+</div>
+
+<div style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--border)">
+<span style="font-weight: 500">Quiz</span>
+<span class="muted">20 ερωτήσεις πολλαπλής επιλογής με εξήγηση.</span>
+</div>
+
+<div style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--border)">
+<span style="font-weight: 500">Σωστό / Λάθος</span>
+<span class="muted">20 δηλώσεις με εξήγηση.</span>
+</div>
+
+<div style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--border)">
+<span style="font-weight: 500">Κάρτες</span>
+<span class="muted">20 κάρτες με επανάληψη όσων δεν γνωρίζατε.</span>
+</div>
+
+</div>
+</section>
+</div>
+</main>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column">
+<p class="cap">Dark</p>
+<div class="sb" data-theme="dark" style="width: 1024px; min-height: 860px">
+<header class="bar">
+<div class="wrap">
+<a class="brand" href="#">StudyBox</a>
+<button class="usage" type="button" aria-describedby="usage-tip">12/250 Req · 34k/250k Tokens</button>
+<button class="btn btn-sm" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg>Ιστορικό</button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Εναλλαγή θέματος" style="width: 32px">
+
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2m-7.07-17.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+</button>
+<button class="btn btn-sm btn-outline" type="button" style="margin-left: 4px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>Νέα μελέτη</button>
+</div>
+</header>
+<main style="padding: 48px 24px 64px">
+<div class="wrap" style="display: flex; flex-direction: column; gap: 32px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<h1 style="font-size: 30px; line-height: 36px; font-weight: 600; letter-spacing: -0.02em">Υλικό μελέτης από τις διαλέξεις σας</h1>
+<p class="muted" style="font-size: 16px; line-height: 24px">Ανεβάστε ένα PDF διάλεξης και δημιουργήστε Σύνοψη, Απλή εξήγηση, Quiz, Σωστό / Λάθος και Κάρτες στα ελληνικά.</p>
+</div>
+<label class="card" style="height: 160px; padding: 24px; display: flex; align-items: center; gap: 16px; cursor: pointer">
+<input class="sr" type="file" accept="application/pdf">
+<span style="width: 40px; height: 40px; border-radius: 6px; background: var(--muted); display: inline-flex; align-items: center; justify-content: center; flex: none"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" style="width: 20px; height: 20px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M17 8l-5-5-5 5"></path><path d="M12 3v12"></path></svg></span>
+<span style="display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0">
+<span style="font-size: 16px; line-height: 24px; font-weight: 500">Σύρετε ένα PDF εδώ</span>
+<span class="muted">PDF, έως 20 MB</span>
+</span>
+<span class="btn btn-outline">Επιλογή αρχείου</span>
+</label>
+<section style="display: flex; flex-direction: column; gap: 8px">
+<h2 style="font-size: 16px; line-height: 24px; font-weight: 600">Τι θα λάβετε</h2>
+<div style="display: flex; flex-direction: column">
+
+<div style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--border)">
+<span style="font-weight: 500">Σύνοψη</span>
+<span class="muted">Οργανωμένα βασικά σημεία και τύποι.</span>
+</div>
+
+<div style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--border)">
+<span style="font-weight: 500">Απλή εξήγηση</span>
+<span class="muted">Η ύλη με απλά λόγια.</span>
+</div>
+
+<div style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--border)">
+<span style="font-weight: 500">Quiz</span>
+<span class="muted">20 ερωτήσεις πολλαπλής επιλογής με εξήγηση.</span>
+</div>
+
+<div style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--border)">
+<span style="font-weight: 500">Σωστό / Λάθος</span>
+<span class="muted">20 δηλώσεις με εξήγηση.</span>
+</div>
+
+<div style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--border)">
+<span style="font-weight: 500">Κάρτες</span>
+<span class="muted">20 κάρτες με επανάληψη όσων δεν γνωρίζατε.</span>
+</div>
+
+</div>
+</section>
+</div>
+</main>
+</div>
+</div>
+
+</div>
+</section>
+<section id="ab-Generating" class="abd"><h2 class="abt">2 · Επιλεγμένο αρχείο, δημιουργία σε εξέλιξη</h2>
+
+<div class="board">
+
+<div style="display: flex; flex-direction: column; gap: 0">
+<p class="cap">Light · Tab σε δημιουργία, tooltip χρήσης ανοιχτό</p>
+<div class="sb" data-theme="light" style="width: 1024px; min-height: 480px">
+<header class="bar">
+<div class="wrap">
+<a class="brand" href="#">StudyBox</a>
+<button class="usage" type="button" aria-describedby="tip-light">12/250 Req · 34k/250k Tokens<span class="tip" role="tooltip" id="tip-light">Σημερινή χρήση σε σχέση με τα ημερήσια όρια του Gemini. Μηδενίζει κάθε μέρα.</span></button>
+<button class="btn btn-sm" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg>Ιστορικό</button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Εναλλαγή θέματος">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+
+</button>
+<button class="btn btn-sm btn-outline" type="button" style="margin-left: 4px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>Νέα μελέτη</button>
+</div>
+</header>
+<main style="padding: 32px 24px 48px">
+<div class="wrap" style="display: flex; flex-direction: column; gap: 24px">
+<div class="filerow">
+<svg class="ico muted" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M16 13H8M16 17H8M10 9H8"></path></svg>
+<span class="name">Grammiki_Algevra_Dialexi_05_Idiotimes_kai_Idiodianysmata.pdf</span>
+<span class="muted" style="font-variant-numeric: tabular-nums; flex: none">2.4 MB</span>
+<button class="btn btn-sm" type="button" disabled="" style="margin-left: auto">Αλλαγή</button>
+</div>
+<div role="tablist" aria-label="Μορφές υλικού" class="tabs">
+<button class="tab" role="tab" aria-selected="false" type="button">Σύνοψη<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+<button class="tab" role="tab" aria-selected="false" type="button">Απλή εξήγηση</button>
+<button class="tab" role="tab" aria-selected="true" type="button">Quiz <span aria-label="σε δημιουργία">…</span></button>
+<button class="tab" role="tab" aria-selected="false" type="button">Σωστό / Λάθος</button>
+<button class="tab" role="tab" aria-selected="false" type="button">Κάρτες</button>
+</div>
+<div class="card" role="tabpanel" style="padding: 24px">
+<p role="status" style="font-size: 16px; line-height: 24px; font-weight: 500">Δημιουργία υλικού. Μπορεί να διαρκέσει έως 2 λεπτά.</p>
+<p class="muted" style="margin-top: 4px">Στο μεταξύ μπορείτε να δείτε τα υπόλοιπα tabs.</p>
+</div>
+</div>
+</main>
+</div>
+
+<p class="cap" style="margin-top: 40px">Light · Άλλο tab κατά τη δημιουργία: το κουμπί είναι απενεργοποιημένο</p>
+<div class="sb" data-theme="light" style="width: 1024px; min-height: 480px">
+<header class="bar">
+<div class="wrap">
+<a class="brand" href="#">StudyBox</a>
+<button class="usage" type="button">12/250 Req · 34k/250k Tokens</button>
+<button class="btn btn-sm" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg>Ιστορικό</button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Εναλλαγή θέματος">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+
+</button>
+<button class="btn btn-sm btn-outline" type="button" style="margin-left: 4px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>Νέα μελέτη</button>
+</div>
+</header>
+<main style="padding: 32px 24px 48px">
+<div class="wrap" style="display: flex; flex-direction: column; gap: 24px">
+<div class="filerow">
+<svg class="ico muted" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M16 13H8M16 17H8M10 9H8"></path></svg>
+<span class="name">Grammiki_Algevra_Dialexi_05_Idiotimes_kai_Idiodianysmata.pdf</span>
+<span class="muted" style="font-variant-numeric: tabular-nums; flex: none">2.4 MB</span>
+<button class="btn btn-sm" type="button" disabled="" style="margin-left: auto">Αλλαγή</button>
+</div>
+<div role="tablist" aria-label="Μορφές υλικού" class="tabs">
+<button class="tab" role="tab" aria-selected="false" type="button">Σύνοψη<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+<button class="tab" role="tab" aria-selected="false" type="button">Απλή εξήγηση</button>
+<button class="tab" role="tab" aria-selected="false" type="button">Quiz <span aria-label="σε δημιουργία">…</span></button>
+<button class="tab" role="tab" aria-selected="true" type="button">Σωστό / Λάθος</button>
+<button class="tab" role="tab" aria-selected="false" type="button">Κάρτες</button>
+</div>
+<div class="card" role="tabpanel" style="padding: 24px; display: flex; flex-direction: column; align-items: flex-start; gap: 16px">
+<p class="muted">20 δηλώσεις για να ελέγξετε αν κάτι ισχύει ή όχι, με εξήγηση για κάθε απάντηση.</p>
+<button class="btn btn-primary" type="button" disabled="">Δημιουργία</button>
+</div>
+</div>
+</main>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 0">
+<p class="cap">Dark · Tab σε δημιουργία, tooltip χρήσης ανοιχτό</p>
+<div class="sb" data-theme="dark" style="width: 1024px; min-height: 480px">
+<header class="bar">
+<div class="wrap">
+<a class="brand" href="#">StudyBox</a>
+<button class="usage" type="button" aria-describedby="tip-dark">12/250 Req · 34k/250k Tokens<span class="tip" role="tooltip" id="tip-dark">Σημερινή χρήση σε σχέση με τα ημερήσια όρια του Gemini. Μηδενίζει κάθε μέρα.</span></button>
+<button class="btn btn-sm" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg>Ιστορικό</button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Εναλλαγή θέματος">
+
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2m-7.07-17.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+</button>
+<button class="btn btn-sm btn-outline" type="button" style="margin-left: 4px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>Νέα μελέτη</button>
+</div>
+</header>
+<main style="padding: 32px 24px 48px">
+<div class="wrap" style="display: flex; flex-direction: column; gap: 24px">
+<div class="filerow">
+<svg class="ico muted" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M16 13H8M16 17H8M10 9H8"></path></svg>
+<span class="name">Grammiki_Algevra_Dialexi_05_Idiotimes_kai_Idiodianysmata.pdf</span>
+<span class="muted" style="font-variant-numeric: tabular-nums; flex: none">2.4 MB</span>
+<button class="btn btn-sm" type="button" disabled="" style="margin-left: auto">Αλλαγή</button>
+</div>
+<div role="tablist" aria-label="Μορφές υλικού" class="tabs">
+<button class="tab" role="tab" aria-selected="false" type="button">Σύνοψη<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+<button class="tab" role="tab" aria-selected="false" type="button">Απλή εξήγηση</button>
+<button class="tab" role="tab" aria-selected="true" type="button">Quiz <span aria-label="σε δημιουργία">…</span></button>
+<button class="tab" role="tab" aria-selected="false" type="button">Σωστό / Λάθος</button>
+<button class="tab" role="tab" aria-selected="false" type="button">Κάρτες</button>
+</div>
+<div class="card" role="tabpanel" style="padding: 24px">
+<p role="status" style="font-size: 16px; line-height: 24px; font-weight: 500">Δημιουργία υλικού. Μπορεί να διαρκέσει έως 2 λεπτά.</p>
+<p class="muted" style="margin-top: 4px">Στο μεταξύ μπορείτε να δείτε τα υπόλοιπα tabs.</p>
+</div>
+</div>
+</main>
+</div>
+
+<p class="cap" style="margin-top: 40px">Dark · Άλλο tab κατά τη δημιουργία: το κουμπί είναι απενεργοποιημένο</p>
+<div class="sb" data-theme="dark" style="width: 1024px; min-height: 480px">
+<header class="bar">
+<div class="wrap">
+<a class="brand" href="#">StudyBox</a>
+<button class="usage" type="button">12/250 Req · 34k/250k Tokens</button>
+<button class="btn btn-sm" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg>Ιστορικό</button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Εναλλαγή θέματος">
+
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2m-7.07-17.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+</button>
+<button class="btn btn-sm btn-outline" type="button" style="margin-left: 4px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>Νέα μελέτη</button>
+</div>
+</header>
+<main style="padding: 32px 24px 48px">
+<div class="wrap" style="display: flex; flex-direction: column; gap: 24px">
+<div class="filerow">
+<svg class="ico muted" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M16 13H8M16 17H8M10 9H8"></path></svg>
+<span class="name">Grammiki_Algevra_Dialexi_05_Idiotimes_kai_Idiodianysmata.pdf</span>
+<span class="muted" style="font-variant-numeric: tabular-nums; flex: none">2.4 MB</span>
+<button class="btn btn-sm" type="button" disabled="" style="margin-left: auto">Αλλαγή</button>
+</div>
+<div role="tablist" aria-label="Μορφές υλικού" class="tabs">
+<button class="tab" role="tab" aria-selected="false" type="button">Σύνοψη<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+<button class="tab" role="tab" aria-selected="false" type="button">Απλή εξήγηση</button>
+<button class="tab" role="tab" aria-selected="false" type="button">Quiz <span aria-label="σε δημιουργία">…</span></button>
+<button class="tab" role="tab" aria-selected="true" type="button">Σωστό / Λάθος</button>
+<button class="tab" role="tab" aria-selected="false" type="button">Κάρτες</button>
+</div>
+<div class="card" role="tabpanel" style="padding: 24px; display: flex; flex-direction: column; align-items: flex-start; gap: 16px">
+<p class="muted">20 δηλώσεις για να ελέγξετε αν κάτι ισχύει ή όχι, με εξήγηση για κάθε απάντηση.</p>
+<button class="btn btn-primary" type="button" disabled="">Δημιουργία</button>
+</div>
+</div>
+</main>
+</div>
+</div>
+
+</div>
+</section>
+<section id="ab-Error" class="abd"><h2 class="abt">3 · Σφάλμα</h2>
+
+<div class="board">
+
+<div style="display: flex; flex-direction: column">
+<p class="cap">Light · Σαρωμένο PDF χωρίς επιλέξιμο κείμενο</p>
+<div class="sb" data-theme="light" style="width: 1024px; min-height: 640px">
+<header class="bar">
+<div class="wrap">
+<a class="brand" href="#">StudyBox</a>
+<button class="usage" type="button">12/250 Req · 34k/250k Tokens</button>
+<button class="btn btn-sm" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg>Ιστορικό</button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Εναλλαγή θέματος">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+
+</button>
+<button class="btn btn-sm btn-outline" type="button" style="margin-left: 4px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>Νέα μελέτη</button>
+</div>
+</header>
+<main style="padding: 32px 24px 48px">
+<div class="wrap" style="display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<div class="filerow">
+<svg class="ico muted" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M16 13H8M16 17H8M10 9H8"></path></svg>
+<span class="name">Simeioseis_Grammiki_Algevra_scan.pdf</span>
+<span class="muted" style="font-variant-numeric: tabular-nums; flex: none">8.7 MB</span>
+<button class="btn btn-sm" type="button" style="margin-left: auto">Αλλαγή</button>
+</div>
+<div class="alert" role="alert">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<p class="alert-title">Το PDF δεν έχει επιλέξιμο κείμενο</p>
+<p>Το αρχείο φαίνεται σαρωμένο, οπότε δεν μπορεί να διαβαστεί. Χρησιμοποιήστε ένα PDF με επιλέξιμο κείμενο ή περάστε το πρώτα από αναγνώριση κειμένου (OCR) και ανεβάστε το ξανά.</p>
+</div>
+</div>
+</div>
+<div role="tablist" aria-label="Μορφές υλικού" class="tabs">
+<button class="tab" role="tab" aria-selected="true" type="button">Σύνοψη</button>
+<button class="tab" role="tab" aria-selected="false" type="button">Απλή εξήγηση</button>
+<button class="tab" role="tab" aria-selected="false" type="button">Quiz</button>
+<button class="tab" role="tab" aria-selected="false" type="button">Σωστό / Λάθος</button>
+<button class="tab" role="tab" aria-selected="false" type="button">Κάρτες</button>
+</div>
+<div class="card" role="tabpanel" style="padding: 24px; display: flex; flex-direction: column; align-items: flex-start; gap: 16px">
+<p class="muted">Τα βασικά σημεία, οι ορισμοί και οι τύποι της διάλεξης, οργανωμένα σε ενότητες.</p>
+<button class="btn btn-primary" type="button">Δημιουργία</button>
+</div>
+</div>
+</main>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column">
+<p class="cap">Dark · Σαρωμένο PDF χωρίς επιλέξιμο κείμενο</p>
+<div class="sb" data-theme="dark" style="width: 1024px; min-height: 640px">
+<header class="bar">
+<div class="wrap">
+<a class="brand" href="#">StudyBox</a>
+<button class="usage" type="button">12/250 Req · 34k/250k Tokens</button>
+<button class="btn btn-sm" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg>Ιστορικό</button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Εναλλαγή θέματος">
+
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2m-7.07-17.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+</button>
+<button class="btn btn-sm btn-outline" type="button" style="margin-left: 4px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>Νέα μελέτη</button>
+</div>
+</header>
+<main style="padding: 32px 24px 48px">
+<div class="wrap" style="display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<div class="filerow">
+<svg class="ico muted" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M16 13H8M16 17H8M10 9H8"></path></svg>
+<span class="name">Simeioseis_Grammiki_Algevra_scan.pdf</span>
+<span class="muted" style="font-variant-numeric: tabular-nums; flex: none">8.7 MB</span>
+<button class="btn btn-sm" type="button" style="margin-left: auto">Αλλαγή</button>
+</div>
+<div class="alert" role="alert">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<p class="alert-title">Το PDF δεν έχει επιλέξιμο κείμενο</p>
+<p>Το αρχείο φαίνεται σαρωμένο, οπότε δεν μπορεί να διαβαστεί. Χρησιμοποιήστε ένα PDF με επιλέξιμο κείμενο ή περάστε το πρώτα από αναγνώριση κειμένου (OCR) και ανεβάστε το ξανά.</p>
+</div>
+</div>
+</div>
+<div role="tablist" aria-label="Μορφές υλικού" class="tabs">
+<button class="tab" role="tab" aria-selected="true" type="button">Σύνοψη</button>
+<button class="tab" role="tab" aria-selected="false" type="button">Απλή εξήγηση</button>
+<button class="tab" role="tab" aria-selected="false" type="button">Quiz</button>
+<button class="tab" role="tab" aria-selected="false" type="button">Σωστό / Λάθος</button>
+<button class="tab" role="tab" aria-selected="false" type="button">Κάρτες</button>
+</div>
+<div class="card" role="tabpanel" style="padding: 24px; display: flex; flex-direction: column; align-items: flex-start; gap: 16px">
+<p class="muted">Τα βασικά σημεία, οι ορισμοί και οι τύποι της διάλεξης, οργανωμένα σε ενότητες.</p>
+<button class="btn btn-primary" type="button">Δημιουργία</button>
+</div>
+</div>
+</main>
+</div>
+</div>
+
+</div>
+</section>
+<section id="ab-UploadStates" class="abd"><h2 class="abt">3b · Καταστάσεις ανεβάσματος και κείμενα σφαλμάτων</h2>
+
+<div class="board">
+
+<div style="display: flex; flex-direction: column">
+<p class="cap">Light</p>
+<div class="sb" data-theme="light" style="width: 864px; padding: 40px 48px; display: flex; flex-direction: column; gap: 32px">
+<div>
+<p class="lbl">Προεπιλογή</p>
+<label class="card" style="height: 160px; padding: 24px; display: flex; align-items: center; gap: 16px; cursor: pointer">
+<input class="sr" type="file" accept="application/pdf">
+<span style="width: 40px; height: 40px; border-radius: 6px; background: var(--muted); display: inline-flex; align-items: center; justify-content: center; flex: none"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" style="width: 20px; height: 20px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M17 8l-5-5-5 5"></path><path d="M12 3v12"></path></svg></span>
+<span style="display: flex; flex-direction: column; gap: 2px; flex: 1"><span style="font-size: 16px; line-height: 24px; font-weight: 500">Σύρετε ένα PDF εδώ</span><span class="muted">PDF, έως 20 MB</span></span>
+<span class="btn btn-outline">Επιλογή αρχείου</span>
+</label>
+</div>
+<div>
+<p class="lbl">Σύρσιμο αρχείου πάνω στην περιοχή</p>
+<div style="height: 160px; padding: 24px; display: flex; align-items: center; gap: 16px; border: 1px solid var(--foreground); border-radius: 8px; background: var(--muted)">
+<span style="width: 40px; height: 40px; border-radius: 6px; background: var(--background); display: inline-flex; align-items: center; justify-content: center; flex: none"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" style="width: 20px; height: 20px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5"></path><path d="M12 15V3"></path></svg></span>
+<span style="font-size: 16px; line-height: 24px; font-weight: 500">Αφήστε το αρχείο εδώ</span>
+</div>
+</div>
+<div>
+<p class="lbl">Επιλεγμένο αρχείο</p>
+<div class="filerow">
+<svg class="ico muted" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M16 13H8M16 17H8M10 9H8"></path></svg>
+<span class="name">Grammiki_Algevra_Dialexi_05_Idiotimes_kai_Idiodianysmata_teliko_v2.pdf</span>
+<span class="muted" style="font-variant-numeric: tabular-nums; flex: none">2.4 MB</span>
+<button class="btn btn-sm" type="button" style="margin-left: auto">Αλλαγή</button>
+</div>
+</div>
+<div>
+<p class="lbl">Ανοιχτή μελέτη χωρίς αρχείο (από ιστορικό ή μετά από ανανέωση)</p>
+<div class="filerow">
+<svg class="ico muted" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path></svg>
+<span style="display: flex; flex-direction: column; min-width: 0; flex: 1">
+<span class="name">Grammiki_Algevra_Dialexi_05_Idiotimes.pdf</span>
+<span class="muted" style="font-size: 12px; line-height: 16px">Για νέο υλικό ανεβάστε ξανά το PDF ή σύρετέ το εδώ.</span>
+</span>
+<button class="btn btn-sm btn-outline" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M17 8l-5-5-5 5"></path><path d="M12 3v12"></path></svg>Ανέβασμα PDF</button>
+</div>
+</div>
+<div>
+<p class="lbl">Κείμενα σφαλμάτων (Alert destructive κάτω από την περιοχή)</p>
+<div style="display: flex; flex-direction: column; gap: 8px">
+
+<div class="alert" role="alert">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<p class="alert-title">Το αρχείο δεν είναι PDF</p>
+<p>Επιλέξτε ένα αρχείο PDF. Άλλοι τύποι αρχείων δεν υποστηρίζονται.</p>
+</div>
+</div>
+
+<div class="alert" role="alert">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<p class="alert-title">Το αρχείο είναι κενό</p>
+<p>Το αρχείο δεν έχει περιεχόμενο. Ελέγξτε το και δοκιμάστε ξανά.</p>
+</div>
+</div>
+
+<div class="alert" role="alert">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<p class="alert-title">Το αρχείο ξεπερνά τα 20 MB</p>
+<p>Το αρχείο είναι 27.3 MB. Συμπιέστε το ή χωρίστε τη διάλεξη σε μικρότερα αρχεία.</p>
+</div>
+</div>
+
+<div class="alert" role="alert">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<p class="alert-title">Δεν ήταν δυνατό να ανοίξει το PDF</p>
+<p>Το αρχείο είναι κατεστραμμένο ή προστατεύεται με κωδικό. Αφαιρέστε την προστασία ή αποθηκεύστε το ξανά ως PDF και ανεβάστε το.</p>
+</div>
+</div>
+
+<div class="alert" role="alert">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<p class="alert-title">Το PDF δεν έχει επιλέξιμο κείμενο</p>
+<p>Το αρχείο φαίνεται σαρωμένο, οπότε δεν μπορεί να διαβαστεί. Χρησιμοποιήστε ένα PDF με επιλέξιμο κείμενο ή περάστε το πρώτα από αναγνώριση κειμένου (OCR).</p>
+</div>
+</div>
+
+<div class="alert" role="alert">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<p class="alert-title">Πολλά αιτήματα σε σύντομο χρόνο</p>
+<p>Συμπληρώθηκε το όριο αιτημάτων ανά λεπτό. Δοκιμάστε ξανά σε περίπου ένα λεπτό.</p>
+</div>
+</div>
+
+<div class="alert" role="alert">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<p class="alert-title">Εξαντλήθηκε το ημερήσιο όριο</p>
+<p>Χρησιμοποιήθηκαν όλα τα αιτήματα ή τα tokens της ημέρας. Το όριο μηδενίζει αύριο.</p>
+</div>
+</div>
+
+<div class="alert" role="alert">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<p class="alert-title">Το μοντέλο είναι προσωρινά υπερφορτωμένο</p>
+<p>Η υπηρεσία δέχεται πολλά αιτήματα αυτή τη στιγμή. Δοκιμάστε ξανά σε λίγα λεπτά.</p>
+</div>
+</div>
+
+<div class="alert" role="alert">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<p class="alert-title">Η απάντηση του μοντέλου δεν ήταν έγκυρη</p>
+<p>Το υλικό δεν δημιουργήθηκε σωστά. Δοκιμάστε ξανά τη δημιουργία.</p>
+</div>
+</div>
+
+<div class="alert" role="alert">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<p class="alert-title">Πρόβλημα με το κλειδί API</p>
+<p>Το κλειδί του Gemini λείπει ή δεν είναι έγκυρο. Ελέγξτε τη ρύθμιση GEMINI_API_KEY στον server.</p>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column">
+<p class="cap">Dark</p>
+<div class="sb" data-theme="dark" style="width: 864px; padding: 40px 48px; display: flex; flex-direction: column; gap: 32px">
+<div>
+<p class="lbl">Προεπιλογή</p>
+<label class="card" style="height: 160px; padding: 24px; display: flex; align-items: center; gap: 16px; cursor: pointer">
+<input class="sr" type="file" accept="application/pdf">
+<span style="width: 40px; height: 40px; border-radius: 6px; background: var(--muted); display: inline-flex; align-items: center; justify-content: center; flex: none"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" style="width: 20px; height: 20px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M17 8l-5-5-5 5"></path><path d="M12 3v12"></path></svg></span>
+<span style="display: flex; flex-direction: column; gap: 2px; flex: 1"><span style="font-size: 16px; line-height: 24px; font-weight: 500">Σύρετε ένα PDF εδώ</span><span class="muted">PDF, έως 20 MB</span></span>
+<span class="btn btn-outline">Επιλογή αρχείου</span>
+</label>
+</div>
+<div>
+<p class="lbl">Σύρσιμο αρχείου πάνω στην περιοχή</p>
+<div style="height: 160px; padding: 24px; display: flex; align-items: center; gap: 16px; border: 1px solid var(--foreground); border-radius: 8px; background: var(--muted)">
+<span style="width: 40px; height: 40px; border-radius: 6px; background: var(--background); display: inline-flex; align-items: center; justify-content: center; flex: none"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" style="width: 20px; height: 20px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5"></path><path d="M12 15V3"></path></svg></span>
+<span style="font-size: 16px; line-height: 24px; font-weight: 500">Αφήστε το αρχείο εδώ</span>
+</div>
+</div>
+<div>
+<p class="lbl">Επιλεγμένο αρχείο</p>
+<div class="filerow">
+<svg class="ico muted" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M16 13H8M16 17H8M10 9H8"></path></svg>
+<span class="name">Grammiki_Algevra_Dialexi_05_Idiotimes_kai_Idiodianysmata_teliko_v2.pdf</span>
+<span class="muted" style="font-variant-numeric: tabular-nums; flex: none">2.4 MB</span>
+<button class="btn btn-sm" type="button" style="margin-left: auto">Αλλαγή</button>
+</div>
+</div>
+<div>
+<p class="lbl">Ανοιχτή μελέτη χωρίς αρχείο (από ιστορικό ή μετά από ανανέωση)</p>
+<div class="filerow">
+<svg class="ico muted" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path></svg>
+<span style="display: flex; flex-direction: column; min-width: 0; flex: 1">
+<span class="name">Grammiki_Algevra_Dialexi_05_Idiotimes.pdf</span>
+<span class="muted" style="font-size: 12px; line-height: 16px">Για νέο υλικό ανεβάστε ξανά το PDF ή σύρετέ το εδώ.</span>
+</span>
+<button class="btn btn-sm btn-outline" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M17 8l-5-5-5 5"></path><path d="M12 3v12"></path></svg>Ανέβασμα PDF</button>
+</div>
+</div>
+<div>
+<p class="lbl">Κείμενα σφαλμάτων (Alert destructive κάτω από την περιοχή)</p>
+<div style="display: flex; flex-direction: column; gap: 8px">
+
+<div class="alert" role="alert">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<p class="alert-title">Το αρχείο δεν είναι PDF</p>
+<p>Επιλέξτε ένα αρχείο PDF. Άλλοι τύποι αρχείων δεν υποστηρίζονται.</p>
+</div>
+</div>
+
+<div class="alert" role="alert">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<p class="alert-title">Το αρχείο είναι κενό</p>
+<p>Το αρχείο δεν έχει περιεχόμενο. Ελέγξτε το και δοκιμάστε ξανά.</p>
+</div>
+</div>
+
+<div class="alert" role="alert">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<p class="alert-title">Το αρχείο ξεπερνά τα 20 MB</p>
+<p>Το αρχείο είναι 27.3 MB. Συμπιέστε το ή χωρίστε τη διάλεξη σε μικρότερα αρχεία.</p>
+</div>
+</div>
+
+<div class="alert" role="alert">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<p class="alert-title">Δεν ήταν δυνατό να ανοίξει το PDF</p>
+<p>Το αρχείο είναι κατεστραμμένο ή προστατεύεται με κωδικό. Αφαιρέστε την προστασία ή αποθηκεύστε το ξανά ως PDF και ανεβάστε το.</p>
+</div>
+</div>
+
+<div class="alert" role="alert">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<p class="alert-title">Το PDF δεν έχει επιλέξιμο κείμενο</p>
+<p>Το αρχείο φαίνεται σαρωμένο, οπότε δεν μπορεί να διαβαστεί. Χρησιμοποιήστε ένα PDF με επιλέξιμο κείμενο ή περάστε το πρώτα από αναγνώριση κειμένου (OCR).</p>
+</div>
+</div>
+
+<div class="alert" role="alert">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<p class="alert-title">Πολλά αιτήματα σε σύντομο χρόνο</p>
+<p>Συμπληρώθηκε το όριο αιτημάτων ανά λεπτό. Δοκιμάστε ξανά σε περίπου ένα λεπτό.</p>
+</div>
+</div>
+
+<div class="alert" role="alert">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<p class="alert-title">Εξαντλήθηκε το ημερήσιο όριο</p>
+<p>Χρησιμοποιήθηκαν όλα τα αιτήματα ή τα tokens της ημέρας. Το όριο μηδενίζει αύριο.</p>
+</div>
+</div>
+
+<div class="alert" role="alert">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<p class="alert-title">Το μοντέλο είναι προσωρινά υπερφορτωμένο</p>
+<p>Η υπηρεσία δέχεται πολλά αιτήματα αυτή τη στιγμή. Δοκιμάστε ξανά σε λίγα λεπτά.</p>
+</div>
+</div>
+
+<div class="alert" role="alert">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<p class="alert-title">Η απάντηση του μοντέλου δεν ήταν έγκυρη</p>
+<p>Το υλικό δεν δημιουργήθηκε σωστά. Δοκιμάστε ξανά τη δημιουργία.</p>
+</div>
+</div>
+
+<div class="alert" role="alert">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<p class="alert-title">Πρόβλημα με το κλειδί API</p>
+<p>Το κλειδί του Gemini λείπει ή δεν είναι έγκυρο. Ελέγξτε τη ρύθμιση GEMINI_API_KEY στον server.</p>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</div>
+
+</div>
+</section>
+<section id="ab-Summary" class="abd"><h2 class="abt">4 · Σύνοψη με τύπους</h2>
+
+<div class="board">
+
+<div style="display: flex; flex-direction: column">
+<p class="cap">Light</p>
+<div class="sb" data-theme="light" style="width: 1024px">
+<header class="bar">
+<div class="wrap">
+<a class="brand" href="#">StudyBox</a>
+<button class="usage" type="button">14/250 Req · 61k/250k Tokens</button>
+<button class="btn btn-sm" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg>Ιστορικό</button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Εναλλαγή θέματος">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+
+</button>
+<button class="btn btn-sm btn-outline" type="button" style="margin-left: 4px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>Νέα μελέτη</button>
+</div>
+</header>
+<main style="padding: 32px 24px 64px">
+<div class="wrap" style="display: flex; flex-direction: column; gap: 24px">
+<div class="filerow">
+<svg class="ico muted" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M16 13H8M16 17H8M10 9H8"></path></svg>
+<span class="name">Grammiki_Algevra_Dialexi_05_Idiotimes.pdf</span>
+<span class="muted" style="font-variant-numeric: tabular-nums; flex: none">2.4 MB</span>
+<button class="btn btn-sm" type="button" style="margin-left: auto">Αλλαγή</button>
+</div>
+<div role="tablist" aria-label="Μορφές υλικού" class="tabs">
+<button class="tab" role="tab" aria-selected="true" type="button">Σύνοψη<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+<button class="tab" role="tab" aria-selected="false" type="button">Απλή εξήγηση<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+<button class="tab" role="tab" aria-selected="false" type="button">Quiz<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+<button class="tab" role="tab" aria-selected="false" type="button">Σωστό / Λάθος</button>
+<button class="tab" role="tab" aria-selected="false" type="button">Κάρτες<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+</div>
+<section role="tabpanel" style="display: flex; flex-direction: column">
+<div style="display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; padding-bottom: 16px">
+<div style="flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<h2 style="font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em">Ιδιοτιμές, ιδιοδιανύσματα και διαγωνοποίηση τετραγωνικών πινάκων</h2>
+<p class="muted">Grammiki_Algevra_Dialexi_05_Idiotimes.pdf · 38 σελ.</p>
+</div>
+<div style="display: flex; gap: 4px; flex-wrap: wrap">
+<button class="btn btn-sm btn-outline" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5"></path><path d="M12 15V3"></path></svg>Λήψη PDF</button>
+<button class="btn btn-sm" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg>Αναδημιουργία</button>
+<button class="btn btn-sm" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg>Αφαίρεση</button>
+</div>
+</div>
+<div class="sep"></div>
+
+<div class="sec read">
+<h3>1. Ορισμός ιδιοτιμής και ιδιοδιανύσματος</h3>
+<p>Έστω τετραγωνικός πίνακας <span class="m"><i>A</i> ∈ ℝ<sup><i>n</i>×<i>n</i></sup></span>. Ένας αριθμός <span class="m"><i>λ</i></span> λέγεται ιδιοτιμή του <span class="m"><i>A</i></span> αν υπάρχει μη μηδενικό διάνυσμα <span class="m"><b>v</b></span> τέτοιο ώστε ο πίνακας να το απεικονίζει σε πολλαπλάσιό του. Το <span class="m"><b>v</b></span> λέγεται ιδιοδιάνυσμα που αντιστοιχεί στην <span class="m"><i>λ</i></span>.</p>
+<div class="fx">
+<div class="mb"><span class="m"><i>A</i><b>v</b> = <i>λ</i><b>v</b>,&nbsp;&nbsp;&nbsp;<b>v</b> ≠ <b>0</b></span></div>
+<p class="note">Το ιδιοδιάνυσμα αλλάζει μόνο μήκος ή φορά, όχι διεύθυνση, όταν πολλαπλασιαστεί με τον <span class="m"><i>A</i></span>.</p>
+</div>
+</div>
+<div class="sep"></div>
+
+<div class="sec read">
+<h3>2. Χαρακτηριστικό πολυώνυμο</h3>
+<p>Η σχέση <span class="m"><i>A</i><b>v</b> = <i>λ</i><b>v</b></span> γράφεται <span class="m">(<i>A</i> − <i>λI</i>)<b>v</b> = <b>0</b></span>. Για να έχει το ομογενές σύστημα μη μηδενική λύση, ο πίνακας <span class="m"><i>A</i> − <i>λI</i></span> πρέπει να είναι μη αντιστρέψιμος.</p>
+<div class="fx">
+<div class="mb"><span class="m"><i>p</i>(<i>λ</i>) = det(<i>A</i> − <i>λI</i>) = 0</span></div>
+<p class="note">Οι ρίζες του <span class="m"><i>p</i>(<i>λ</i>)</span> είναι οι ιδιοτιμές. Το πολυώνυμο έχει βαθμό <span class="m"><i>n</i></span>, άρα υπάρχουν το πολύ <span class="m"><i>n</i></span> διακεκριμένες ιδιοτιμές.</p>
+</div>
+</div>
+<div class="sep"></div>
+
+<div class="sec read">
+<h3>3. Παράδειγμα για πίνακα 2 × 2</h3>
+<p>Για τον συμμετρικό πίνακα του παραδείγματος της διάλεξης:</p>
+<div class="fx">
+<div class="mb"><span class="m"><i>A</i> = <span class="mat"><span style="grid-template-columns: repeat(2, auto)"><span>2</span><span>1</span><span>1</span><span>2</span></span></span>,&nbsp;&nbsp;&nbsp;det(<i>A</i> − <i>λI</i>) = (2 − <i>λ</i>)<sup>2</sup> − 1 = 0&nbsp;&nbsp;⇒&nbsp;&nbsp;<i>λ</i><sub>1</sub> = 1,&nbsp;&nbsp;<i>λ</i><sub>2</sub> = 3</span></div>
+<p class="note">Λύνοντας <span class="m">(<i>A</i> − 3<i>I</i>)<b>v</b> = <b>0</b></span> προκύπτει <span class="m"><b>v</b><sub>2</sub> = (1, 1)<sup>T</sup></span>, και για <span class="m"><i>λ</i><sub>1</sub> = 1</span> το <span class="m"><b>v</b><sub>1</sub> = (1, −1)<sup>T</sup></span>.</p>
+</div>
+</div>
+<div class="sep"></div>
+
+<div class="sec read">
+<h3>4. Διαγωνοποίηση</h3>
+<p>Ένας πίνακας <span class="m"><i>n</i> × <i>n</i></span> είναι διαγωνοποιήσιμος αν και μόνο αν έχει <span class="m"><i>n</i></span> γραμμικά ανεξάρτητα ιδιοδιανύσματα. Τότε τα ιδιοδιανύσματα σχηματίζουν τις στήλες του <span class="m"><i>P</i></span> και οι ιδιοτιμές τη διαγώνιο του <span class="m"><i>D</i></span>.</p>
+<div class="fx">
+<div class="mb"><span class="m"><i>A</i> = <i>PDP</i><sup>−1</sup>,&nbsp;&nbsp;&nbsp;<i>A</i><sup><i>k</i></sup> = <i>PD</i><sup><i>k</i></sup><i>P</i><sup>−1</sup> = <i>P</i> <span class="mat"><span style="grid-template-columns: repeat(4, auto)"><span><i>λ</i><sub>1</sub><sup><i>k</i></sup></span><span>0</span><span>⋯</span><span>0</span><span>0</span><span><i>λ</i><sub>2</sub><sup><i>k</i></sup></span><span>⋯</span><span>0</span><span>⋮</span><span>⋮</span><span>⋱</span><span>⋮</span><span>0</span><span>0</span><span>⋯</span><span><i>λ</i><sub><i>n</i></sub><sup><i>k</i></sup></span></span></span> <i>P</i><sup>−1</sup>,&nbsp;&nbsp;&nbsp;όπου&nbsp;&nbsp;<i>P</i> = [&nbsp;<b>v</b><sub>1</sub>&nbsp;&nbsp;<b>v</b><sub>2</sub>&nbsp;&nbsp;⋯&nbsp;&nbsp;<b>v</b><sub><i>n</i></sub>&nbsp;],&nbsp;&nbsp;<i>D</i> = diag(<i>λ</i><sub>1</sub>, <i>λ</i><sub>2</sub>, …, <i>λ</i><sub><i>n</i></sub>)</span></div>
+<p class="note">Οι δυνάμεις του <span class="m"><i>A</i></span> υπολογίζονται εύκολα, γιατί αρκεί να υψωθούν μόνο τα διαγώνια στοιχεία. Ο μακρύς τύπος κυλά οριζόντια μέσα στο πλαίσιό του.</p>
+</div>
+</div>
+<div class="sep"></div>
+
+<div class="sec read">
+<h3>5. Ίχνος και ορίζουσα</h3>
+<p>Το άθροισμα και το γινόμενο των ιδιοτιμών συνδέονται απευθείας με τον πίνακα, χωρίς να χρειάζεται να τις υπολογίσετε.</p>
+<div class="fx">
+<div class="mb"><span class="m">tr(<i>A</i>) = <span style="font-size: 1.2em">∑</span><sub><i>i</i>=1</sub><sup><i>n</i></sup> <i>λ</i><sub><i>i</i></sub>,&nbsp;&nbsp;&nbsp;&nbsp;det(<i>A</i>) = <span style="font-size: 1.2em">∏</span><sub><i>i</i>=1</sub><sup><i>n</i></sup> <i>λ</i><sub><i>i</i></sub></span></div>
+<p class="note">Χρήσιμος γρήγορος έλεγχος: στο παράδειγμα, 1 + 3 = 4 = tr(<span class="m"><i>A</i></span>) και 1 · 3 = 3 = det(<span class="m"><i>A</i></span>).</p>
+</div>
+</div>
+<div class="sep"></div>
+
+<div class="sec read" style="padding-bottom: 0">
+<h3>Συμβουλές για την εξέταση</h3>
+<ul>
+<li>Ελέγχετε πάντα τις ιδιοτιμές με το ίχνος και την ορίζουσα πριν συνεχίσετε.</li>
+<li>Ένα ιδιοδιάνυσμα δεν είναι ποτέ το μηδενικό διάνυσμα, αλλά μια ιδιοτιμή μπορεί να είναι 0.</li>
+<li>Διακεκριμένες ιδιοτιμές εξασφαλίζουν διαγωνοποίηση. Με επαναλαμβανόμενες, ελέγξτε τη διάσταση κάθε ιδιόχωρου.</li>
+<li>Οι συμμετρικοί πραγματικοί πίνακες έχουν πάντα πραγματικές ιδιοτιμές και ορθογώνια ιδιοδιανύσματα.</li>
+</ul>
+</div>
+</section>
+</div>
+</main>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column">
+<p class="cap">Dark</p>
+<div class="sb" data-theme="dark" style="width: 1024px">
+<header class="bar">
+<div class="wrap">
+<a class="brand" href="#">StudyBox</a>
+<button class="usage" type="button">14/250 Req · 61k/250k Tokens</button>
+<button class="btn btn-sm" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg>Ιστορικό</button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Εναλλαγή θέματος">
+
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2m-7.07-17.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+</button>
+<button class="btn btn-sm btn-outline" type="button" style="margin-left: 4px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>Νέα μελέτη</button>
+</div>
+</header>
+<main style="padding: 32px 24px 64px">
+<div class="wrap" style="display: flex; flex-direction: column; gap: 24px">
+<div class="filerow">
+<svg class="ico muted" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M16 13H8M16 17H8M10 9H8"></path></svg>
+<span class="name">Grammiki_Algevra_Dialexi_05_Idiotimes.pdf</span>
+<span class="muted" style="font-variant-numeric: tabular-nums; flex: none">2.4 MB</span>
+<button class="btn btn-sm" type="button" style="margin-left: auto">Αλλαγή</button>
+</div>
+<div role="tablist" aria-label="Μορφές υλικού" class="tabs">
+<button class="tab" role="tab" aria-selected="true" type="button">Σύνοψη<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+<button class="tab" role="tab" aria-selected="false" type="button">Απλή εξήγηση<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+<button class="tab" role="tab" aria-selected="false" type="button">Quiz<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+<button class="tab" role="tab" aria-selected="false" type="button">Σωστό / Λάθος</button>
+<button class="tab" role="tab" aria-selected="false" type="button">Κάρτες<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+</div>
+<section role="tabpanel" style="display: flex; flex-direction: column">
+<div style="display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; padding-bottom: 16px">
+<div style="flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<h2 style="font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em">Ιδιοτιμές, ιδιοδιανύσματα και διαγωνοποίηση τετραγωνικών πινάκων</h2>
+<p class="muted">Grammiki_Algevra_Dialexi_05_Idiotimes.pdf · 38 σελ.</p>
+</div>
+<div style="display: flex; gap: 4px; flex-wrap: wrap">
+<button class="btn btn-sm btn-outline" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5"></path><path d="M12 15V3"></path></svg>Λήψη PDF</button>
+<button class="btn btn-sm" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg>Αναδημιουργία</button>
+<button class="btn btn-sm" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg>Αφαίρεση</button>
+</div>
+</div>
+<div class="sep"></div>
+
+<div class="sec read">
+<h3>1. Ορισμός ιδιοτιμής και ιδιοδιανύσματος</h3>
+<p>Έστω τετραγωνικός πίνακας <span class="m"><i>A</i> ∈ ℝ<sup><i>n</i>×<i>n</i></sup></span>. Ένας αριθμός <span class="m"><i>λ</i></span> λέγεται ιδιοτιμή του <span class="m"><i>A</i></span> αν υπάρχει μη μηδενικό διάνυσμα <span class="m"><b>v</b></span> τέτοιο ώστε ο πίνακας να το απεικονίζει σε πολλαπλάσιό του. Το <span class="m"><b>v</b></span> λέγεται ιδιοδιάνυσμα που αντιστοιχεί στην <span class="m"><i>λ</i></span>.</p>
+<div class="fx">
+<div class="mb"><span class="m"><i>A</i><b>v</b> = <i>λ</i><b>v</b>,&nbsp;&nbsp;&nbsp;<b>v</b> ≠ <b>0</b></span></div>
+<p class="note">Το ιδιοδιάνυσμα αλλάζει μόνο μήκος ή φορά, όχι διεύθυνση, όταν πολλαπλασιαστεί με τον <span class="m"><i>A</i></span>.</p>
+</div>
+</div>
+<div class="sep"></div>
+
+<div class="sec read">
+<h3>2. Χαρακτηριστικό πολυώνυμο</h3>
+<p>Η σχέση <span class="m"><i>A</i><b>v</b> = <i>λ</i><b>v</b></span> γράφεται <span class="m">(<i>A</i> − <i>λI</i>)<b>v</b> = <b>0</b></span>. Για να έχει το ομογενές σύστημα μη μηδενική λύση, ο πίνακας <span class="m"><i>A</i> − <i>λI</i></span> πρέπει να είναι μη αντιστρέψιμος.</p>
+<div class="fx">
+<div class="mb"><span class="m"><i>p</i>(<i>λ</i>) = det(<i>A</i> − <i>λI</i>) = 0</span></div>
+<p class="note">Οι ρίζες του <span class="m"><i>p</i>(<i>λ</i>)</span> είναι οι ιδιοτιμές. Το πολυώνυμο έχει βαθμό <span class="m"><i>n</i></span>, άρα υπάρχουν το πολύ <span class="m"><i>n</i></span> διακεκριμένες ιδιοτιμές.</p>
+</div>
+</div>
+<div class="sep"></div>
+
+<div class="sec read">
+<h3>3. Παράδειγμα για πίνακα 2 × 2</h3>
+<p>Για τον συμμετρικό πίνακα του παραδείγματος της διάλεξης:</p>
+<div class="fx">
+<div class="mb"><span class="m"><i>A</i> = <span class="mat"><span style="grid-template-columns: repeat(2, auto)"><span>2</span><span>1</span><span>1</span><span>2</span></span></span>,&nbsp;&nbsp;&nbsp;det(<i>A</i> − <i>λI</i>) = (2 − <i>λ</i>)<sup>2</sup> − 1 = 0&nbsp;&nbsp;⇒&nbsp;&nbsp;<i>λ</i><sub>1</sub> = 1,&nbsp;&nbsp;<i>λ</i><sub>2</sub> = 3</span></div>
+<p class="note">Λύνοντας <span class="m">(<i>A</i> − 3<i>I</i>)<b>v</b> = <b>0</b></span> προκύπτει <span class="m"><b>v</b><sub>2</sub> = (1, 1)<sup>T</sup></span>, και για <span class="m"><i>λ</i><sub>1</sub> = 1</span> το <span class="m"><b>v</b><sub>1</sub> = (1, −1)<sup>T</sup></span>.</p>
+</div>
+</div>
+<div class="sep"></div>
+
+<div class="sec read">
+<h3>4. Διαγωνοποίηση</h3>
+<p>Ένας πίνακας <span class="m"><i>n</i> × <i>n</i></span> είναι διαγωνοποιήσιμος αν και μόνο αν έχει <span class="m"><i>n</i></span> γραμμικά ανεξάρτητα ιδιοδιανύσματα. Τότε τα ιδιοδιανύσματα σχηματίζουν τις στήλες του <span class="m"><i>P</i></span> και οι ιδιοτιμές τη διαγώνιο του <span class="m"><i>D</i></span>.</p>
+<div class="fx">
+<div class="mb"><span class="m"><i>A</i> = <i>PDP</i><sup>−1</sup>,&nbsp;&nbsp;&nbsp;<i>A</i><sup><i>k</i></sup> = <i>PD</i><sup><i>k</i></sup><i>P</i><sup>−1</sup> = <i>P</i> <span class="mat"><span style="grid-template-columns: repeat(4, auto)"><span><i>λ</i><sub>1</sub><sup><i>k</i></sup></span><span>0</span><span>⋯</span><span>0</span><span>0</span><span><i>λ</i><sub>2</sub><sup><i>k</i></sup></span><span>⋯</span><span>0</span><span>⋮</span><span>⋮</span><span>⋱</span><span>⋮</span><span>0</span><span>0</span><span>⋯</span><span><i>λ</i><sub><i>n</i></sub><sup><i>k</i></sup></span></span></span> <i>P</i><sup>−1</sup>,&nbsp;&nbsp;&nbsp;όπου&nbsp;&nbsp;<i>P</i> = [&nbsp;<b>v</b><sub>1</sub>&nbsp;&nbsp;<b>v</b><sub>2</sub>&nbsp;&nbsp;⋯&nbsp;&nbsp;<b>v</b><sub><i>n</i></sub>&nbsp;],&nbsp;&nbsp;<i>D</i> = diag(<i>λ</i><sub>1</sub>, <i>λ</i><sub>2</sub>, …, <i>λ</i><sub><i>n</i></sub>)</span></div>
+<p class="note">Οι δυνάμεις του <span class="m"><i>A</i></span> υπολογίζονται εύκολα, γιατί αρκεί να υψωθούν μόνο τα διαγώνια στοιχεία. Ο μακρύς τύπος κυλά οριζόντια μέσα στο πλαίσιό του.</p>
+</div>
+</div>
+<div class="sep"></div>
+
+<div class="sec read">
+<h3>5. Ίχνος και ορίζουσα</h3>
+<p>Το άθροισμα και το γινόμενο των ιδιοτιμών συνδέονται απευθείας με τον πίνακα, χωρίς να χρειάζεται να τις υπολογίσετε.</p>
+<div class="fx">
+<div class="mb"><span class="m">tr(<i>A</i>) = <span style="font-size: 1.2em">∑</span><sub><i>i</i>=1</sub><sup><i>n</i></sup> <i>λ</i><sub><i>i</i></sub>,&nbsp;&nbsp;&nbsp;&nbsp;det(<i>A</i>) = <span style="font-size: 1.2em">∏</span><sub><i>i</i>=1</sub><sup><i>n</i></sup> <i>λ</i><sub><i>i</i></sub></span></div>
+<p class="note">Χρήσιμος γρήγορος έλεγχος: στο παράδειγμα, 1 + 3 = 4 = tr(<span class="m"><i>A</i></span>) και 1 · 3 = 3 = det(<span class="m"><i>A</i></span>).</p>
+</div>
+</div>
+<div class="sep"></div>
+
+<div class="sec read" style="padding-bottom: 0">
+<h3>Συμβουλές για την εξέταση</h3>
+<ul>
+<li>Ελέγχετε πάντα τις ιδιοτιμές με το ίχνος και την ορίζουσα πριν συνεχίσετε.</li>
+<li>Ένα ιδιοδιάνυσμα δεν είναι ποτέ το μηδενικό διάνυσμα, αλλά μια ιδιοτιμή μπορεί να είναι 0.</li>
+<li>Διακεκριμένες ιδιοτιμές εξασφαλίζουν διαγωνοποίηση. Με επαναλαμβανόμενες, ελέγξτε τη διάσταση κάθε ιδιόχωρου.</li>
+<li>Οι συμμετρικοί πραγματικοί πίνακες έχουν πάντα πραγματικές ιδιοτιμές και ορθογώνια ιδιοδιανύσματα.</li>
+</ul>
+</div>
+</section>
+</div>
+</main>
+</div>
+</div>
+
+</div>
+</section>
+<section id="ab-Quiz" class="abd"><h2 class="abt">5 · Quiz</h2>
+
+<div class="board">
+
+<div style="display: flex; flex-direction: column">
+<p class="cap">Light · σωστή, λανθασμένη και αναπάντητη ερώτηση</p>
+<div class="sb" data-theme="light" style="width: 1024px">
+<header class="bar">
+<div class="wrap">
+<a class="brand" href="#">StudyBox</a>
+<button class="usage" type="button">15/250 Req · 82k/250k Tokens</button>
+<button class="btn btn-sm" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg>Ιστορικό</button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Εναλλαγή θέματος">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+
+</button>
+<button class="btn btn-sm btn-outline" type="button" style="margin-left: 4px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>Νέα μελέτη</button>
+</div>
+</header>
+<div class="scorebar">
+<div class="wrap" style="display: flex; flex-direction: column; gap: 8px">
+<p class="score" aria-live="polite">Σκορ: 7 / 20 · 9 απαντημένες</p>
+<div class="prog" role="progressbar" aria-label="Απαντημένες ερωτήσεις" aria-valuemin="0" aria-valuemax="20" aria-valuenow="9"><span style="width: 45%"></span></div>
+</div>
+</div>
+<main style="padding: 24px 24px 64px">
+<div class="wrap" style="display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; padding-bottom: 8px">
+<div style="flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<h2 style="font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em">Quiz: Ιδιοτιμές και διαγωνοποίηση</h2>
+<p class="muted">Grammiki_Algevra_Dialexi_05_Idiotimes.pdf · 38 σελ.</p>
+</div>
+<div style="display: flex; gap: 4px; flex-wrap: wrap">
+<button class="btn btn-sm btn-outline" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5"></path><path d="M12 15V3"></path></svg>Λήψη PDF</button>
+<button class="btn btn-sm" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg>Αναδημιουργία</button>
+<button class="btn btn-sm" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg>Αφαίρεση</button>
+</div>
+</div>
+
+<article class="card q">
+<div class="qh">
+<span class="qn">8.</span>
+<p class="qt">Ποιες είναι οι ιδιοτιμές του πίνακα <span class="m"><i>A</i> = <span class="mat"><span style="grid-template-columns: repeat(2, auto)"><span>4</span><span>1</span><span>2</span><span>3</span></span></span></span>;</p>
+<span class="badge">Μέτρια</span>
+</div>
+<div class="opts" role="group" aria-label="Επιλογές ερώτησης 8">
+<button class="opt dim" type="button" disabled=""><span class="let">Α</span><span class="txt"><span class="m"><i>λ</i><sub>1</sub> = 1, <i>λ</i><sub>2</sub> = 6</span></span></button>
+<button class="opt ok" type="button" aria-disabled="true"><span class="let">Β</span><span class="txt"><span class="m"><i>λ</i><sub>1</sub> = 2, <i>λ</i><sub>2</sub> = 5</span></span><span class="tag"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Σωστή</span></button>
+<button class="opt dim" type="button" disabled=""><span class="let">Γ</span><span class="txt"><span class="m"><i>λ</i><sub>1</sub> = 3, <i>λ</i><sub>2</sub> = 4</span></span></button>
+<button class="opt dim" type="button" disabled=""><span class="let">Δ</span><span class="txt"><span class="m"><i>λ</i><sub>1</sub> = −2, <i>λ</i><sub>2</sub> = −5</span></span></button>
+</div>
+<div class="expl">
+<p>Το ίχνος είναι 7 και η ορίζουσα 10, οπότε οι ιδιοτιμές είναι οι ρίζες της <span class="m"><i>λ</i><sup>2</sup> − 7<i>λ</i> + 10 = 0</span>, δηλαδή 2 και 5.</p>
+</div>
+</article>
+
+<article class="card q">
+<div class="qh">
+<span class="qn">9.</span>
+<p class="qt">Ένας πίνακας <span class="m"><i>A</i></span> διάστασης 3 × 3 έχει ιδιοτιμές 1, 2 και 0. Ποιο από τα παρακάτω ισχύει;</p>
+<span class="badge">Εύκολη</span>
+</div>
+<div class="opts" role="group" aria-label="Επιλογές ερώτησης 9">
+<button class="opt bad" type="button" aria-disabled="true"><span class="let">Α</span><span class="txt">Ο <span class="m"><i>A</i></span> είναι αντιστρέψιμος</span><span class="tag"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg>Η απάντησή σας</span></button>
+<button class="opt ok" type="button" aria-disabled="true"><span class="let">Β</span><span class="txt"><span class="m">det(<i>A</i>) = 0</span></span><span class="tag"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Σωστή</span></button>
+<button class="opt dim" type="button" disabled=""><span class="let">Γ</span><span class="txt"><span class="m">tr(<i>A</i>) = 0</span></span></button>
+<button class="opt dim" type="button" disabled=""><span class="let">Δ</span><span class="txt">Ο <span class="m"><i>A</i></span> δεν είναι διαγωνοποιήσιμος</span></button>
+</div>
+<div class="expl">
+<p>Ένας πίνακας είναι αντιστρέψιμος μόνο αν καμία ιδιοτιμή του δεν είναι 0. Εδώ μία ιδιοτιμή είναι 0, άρα ο <span class="m"><i>A</i></span> δεν αντιστρέφεται.</p>
+<p><b>Σωστή απάντηση (Β):</b> η ορίζουσα ισούται με το γινόμενο των ιδιοτιμών, <span class="m">1 · 2 · 0 = 0</span>.</p>
+</div>
+</article>
+
+<article class="card q">
+<div class="qh">
+<span class="qn">10.</span>
+<p class="qt">Είναι διαγωνοποιήσιμος ο πίνακας <span class="m"><i>B</i> = <span class="mat"><span style="grid-template-columns: repeat(2, auto)"><span>1</span><span>1</span><span>0</span><span>1</span></span></span></span>;</p>
+<span class="badge">Δύσκολη</span>
+</div>
+<div class="opts" role="group" aria-label="Επιλογές ερώτησης 10">
+<button class="opt" type="button"><span class="let">Α</span><span class="txt">Ναι, γιατί όλες οι ιδιοτιμές του είναι πραγματικές</span></button>
+<button class="opt" type="button"><span class="let">Β</span><span class="txt">Ναι, γιατί είναι άνω τριγωνικός</span></button>
+<button class="opt" type="button"><span class="let">Γ</span><span class="txt">Όχι, γιατί ο ιδιόχωρος της <span class="m"><i>λ</i> = 1</span> έχει διάσταση 1</span></button>
+<button class="opt" type="button"><span class="let">Δ</span><span class="txt">Όχι, γιατί <span class="m">det(<i>B</i>) = 0</span></span></button>
+</div>
+</article>
+</div>
+</main>
+</div>
+<p class="cap" style="margin-top: 32px">Light · Γραμμή σκορ μετά την τελευταία απάντηση</p>
+<div class="sb" data-theme="light" style="width: 1024px">
+<div class="scorebar" style="position: static">
+<div class="wrap" style="display: flex; flex-direction: column; gap: 8px">
+<p class="score">Σκορ: 15 / 20 · Ολοκληρώθηκε</p>
+<div class="prog" role="progressbar" aria-label="Απαντημένες ερωτήσεις" aria-valuemin="0" aria-valuemax="20" aria-valuenow="20"><span style="width: 100%"></span></div>
+</div>
+</div>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column">
+<p class="cap">Dark · σωστή, λανθασμένη και αναπάντητη ερώτηση</p>
+<div class="sb" data-theme="dark" style="width: 1024px">
+<header class="bar">
+<div class="wrap">
+<a class="brand" href="#">StudyBox</a>
+<button class="usage" type="button">15/250 Req · 82k/250k Tokens</button>
+<button class="btn btn-sm" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg>Ιστορικό</button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Εναλλαγή θέματος">
+
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2m-7.07-17.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+</button>
+<button class="btn btn-sm btn-outline" type="button" style="margin-left: 4px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>Νέα μελέτη</button>
+</div>
+</header>
+<div class="scorebar">
+<div class="wrap" style="display: flex; flex-direction: column; gap: 8px">
+<p class="score" aria-live="polite">Σκορ: 7 / 20 · 9 απαντημένες</p>
+<div class="prog" role="progressbar" aria-label="Απαντημένες ερωτήσεις" aria-valuemin="0" aria-valuemax="20" aria-valuenow="9"><span style="width: 45%"></span></div>
+</div>
+</div>
+<main style="padding: 24px 24px 64px">
+<div class="wrap" style="display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; padding-bottom: 8px">
+<div style="flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<h2 style="font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em">Quiz: Ιδιοτιμές και διαγωνοποίηση</h2>
+<p class="muted">Grammiki_Algevra_Dialexi_05_Idiotimes.pdf · 38 σελ.</p>
+</div>
+<div style="display: flex; gap: 4px; flex-wrap: wrap">
+<button class="btn btn-sm btn-outline" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5"></path><path d="M12 15V3"></path></svg>Λήψη PDF</button>
+<button class="btn btn-sm" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg>Αναδημιουργία</button>
+<button class="btn btn-sm" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg>Αφαίρεση</button>
+</div>
+</div>
+
+<article class="card q">
+<div class="qh">
+<span class="qn">8.</span>
+<p class="qt">Ποιες είναι οι ιδιοτιμές του πίνακα <span class="m"><i>A</i> = <span class="mat"><span style="grid-template-columns: repeat(2, auto)"><span>4</span><span>1</span><span>2</span><span>3</span></span></span></span>;</p>
+<span class="badge">Μέτρια</span>
+</div>
+<div class="opts" role="group" aria-label="Επιλογές ερώτησης 8">
+<button class="opt dim" type="button" disabled=""><span class="let">Α</span><span class="txt"><span class="m"><i>λ</i><sub>1</sub> = 1, <i>λ</i><sub>2</sub> = 6</span></span></button>
+<button class="opt ok" type="button" aria-disabled="true"><span class="let">Β</span><span class="txt"><span class="m"><i>λ</i><sub>1</sub> = 2, <i>λ</i><sub>2</sub> = 5</span></span><span class="tag"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Σωστή</span></button>
+<button class="opt dim" type="button" disabled=""><span class="let">Γ</span><span class="txt"><span class="m"><i>λ</i><sub>1</sub> = 3, <i>λ</i><sub>2</sub> = 4</span></span></button>
+<button class="opt dim" type="button" disabled=""><span class="let">Δ</span><span class="txt"><span class="m"><i>λ</i><sub>1</sub> = −2, <i>λ</i><sub>2</sub> = −5</span></span></button>
+</div>
+<div class="expl">
+<p>Το ίχνος είναι 7 και η ορίζουσα 10, οπότε οι ιδιοτιμές είναι οι ρίζες της <span class="m"><i>λ</i><sup>2</sup> − 7<i>λ</i> + 10 = 0</span>, δηλαδή 2 και 5.</p>
+</div>
+</article>
+
+<article class="card q">
+<div class="qh">
+<span class="qn">9.</span>
+<p class="qt">Ένας πίνακας <span class="m"><i>A</i></span> διάστασης 3 × 3 έχει ιδιοτιμές 1, 2 και 0. Ποιο από τα παρακάτω ισχύει;</p>
+<span class="badge">Εύκολη</span>
+</div>
+<div class="opts" role="group" aria-label="Επιλογές ερώτησης 9">
+<button class="opt bad" type="button" aria-disabled="true"><span class="let">Α</span><span class="txt">Ο <span class="m"><i>A</i></span> είναι αντιστρέψιμος</span><span class="tag"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg>Η απάντησή σας</span></button>
+<button class="opt ok" type="button" aria-disabled="true"><span class="let">Β</span><span class="txt"><span class="m">det(<i>A</i>) = 0</span></span><span class="tag"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Σωστή</span></button>
+<button class="opt dim" type="button" disabled=""><span class="let">Γ</span><span class="txt"><span class="m">tr(<i>A</i>) = 0</span></span></button>
+<button class="opt dim" type="button" disabled=""><span class="let">Δ</span><span class="txt">Ο <span class="m"><i>A</i></span> δεν είναι διαγωνοποιήσιμος</span></button>
+</div>
+<div class="expl">
+<p>Ένας πίνακας είναι αντιστρέψιμος μόνο αν καμία ιδιοτιμή του δεν είναι 0. Εδώ μία ιδιοτιμή είναι 0, άρα ο <span class="m"><i>A</i></span> δεν αντιστρέφεται.</p>
+<p><b>Σωστή απάντηση (Β):</b> η ορίζουσα ισούται με το γινόμενο των ιδιοτιμών, <span class="m">1 · 2 · 0 = 0</span>.</p>
+</div>
+</article>
+
+<article class="card q">
+<div class="qh">
+<span class="qn">10.</span>
+<p class="qt">Είναι διαγωνοποιήσιμος ο πίνακας <span class="m"><i>B</i> = <span class="mat"><span style="grid-template-columns: repeat(2, auto)"><span>1</span><span>1</span><span>0</span><span>1</span></span></span></span>;</p>
+<span class="badge">Δύσκολη</span>
+</div>
+<div class="opts" role="group" aria-label="Επιλογές ερώτησης 10">
+<button class="opt" type="button"><span class="let">Α</span><span class="txt">Ναι, γιατί όλες οι ιδιοτιμές του είναι πραγματικές</span></button>
+<button class="opt" type="button"><span class="let">Β</span><span class="txt">Ναι, γιατί είναι άνω τριγωνικός</span></button>
+<button class="opt" type="button"><span class="let">Γ</span><span class="txt">Όχι, γιατί ο ιδιόχωρος της <span class="m"><i>λ</i> = 1</span> έχει διάσταση 1</span></button>
+<button class="opt" type="button"><span class="let">Δ</span><span class="txt">Όχι, γιατί <span class="m">det(<i>B</i>) = 0</span></span></button>
+</div>
+</article>
+</div>
+</main>
+</div>
+<p class="cap" style="margin-top: 32px">Dark · Γραμμή σκορ μετά την τελευταία απάντηση</p>
+<div class="sb" data-theme="dark" style="width: 1024px">
+<div class="scorebar" style="position: static">
+<div class="wrap" style="display: flex; flex-direction: column; gap: 8px">
+<p class="score">Σκορ: 15 / 20 · Ολοκληρώθηκε</p>
+<div class="prog" role="progressbar" aria-label="Απαντημένες ερωτήσεις" aria-valuemin="0" aria-valuemax="20" aria-valuenow="20"><span style="width: 100%"></span></div>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+</section>
+<section id="ab-TrueFalse" class="abd"><h2 class="abt">6 · Σωστό / Λάθος</h2>
+
+<div class="board">
+
+<div style="display: flex; flex-direction: column">
+<p class="cap">Light · σωστή, λανθασμένη και αναπάντητη δήλωση</p>
+<div class="sb" data-theme="light" style="width: 1024px">
+<header class="bar">
+<div class="wrap">
+<a class="brand" href="#">StudyBox</a>
+<button class="usage" type="button">16/250 Req · 97k/250k Tokens</button>
+<button class="btn btn-sm" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg>Ιστορικό</button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Εναλλαγή θέματος">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+
+</button>
+<button class="btn btn-sm btn-outline" type="button" style="margin-left: 4px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>Νέα μελέτη</button>
+</div>
+</header>
+<div class="scorebar">
+<div class="wrap" style="display: flex; flex-direction: column; gap: 8px">
+<p class="score" aria-live="polite">Σκορ: 11 / 20 · 14 απαντημένες</p>
+<div class="prog" role="progressbar" aria-label="Απαντημένες δηλώσεις" aria-valuemin="0" aria-valuemax="20" aria-valuenow="14"><span style="width: 70%"></span></div>
+</div>
+</div>
+<main style="padding: 24px 24px 64px">
+<div class="wrap" style="display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; padding-bottom: 8px">
+<div style="flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<h2 style="font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em">Σωστό ή Λάθος: Ιδιοτιμές και ιδιοδιανύσματα</h2>
+<p class="muted">Grammiki_Algevra_Dialexi_05_Idiotimes.pdf · 38 σελ.</p>
+</div>
+<div style="display: flex; gap: 4px; flex-wrap: wrap">
+<button class="btn btn-sm btn-outline" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5"></path><path d="M12 15V3"></path></svg>Λήψη PDF</button>
+<button class="btn btn-sm" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg>Αναδημιουργία</button>
+<button class="btn btn-sm" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg>Αφαίρεση</button>
+</div>
+</div>
+
+<article class="card q">
+<div class="qh">
+<span class="qn">5.</span>
+<p class="qt">Κάθε τετραγωνικός πίνακας με πραγματικά στοιχεία έχει πραγματικές ιδιοτιμές.</p>
+<span class="badge">Εύκολη</span>
+</div>
+<div class="tf" role="group" aria-label="Απάντηση δήλωσης 5">
+<button class="opt dim" type="button" disabled="">Σωστό</button>
+<button class="opt ok" type="button" aria-disabled="true">Λάθος<span class="tag"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Σωστή · Η απάντησή σας</span></button>
+</div>
+<div class="expl">
+<p><b>Απαντήσατε σωστά. Η δήλωση είναι λάθος.</b></p>
+<p>Ο πίνακας στροφής <span class="m"><span class="mat"><span style="grid-template-columns: repeat(2, auto)"><span>0</span><span>−1</span><span>1</span><span>0</span></span></span></span> έχει χαρακτηριστικό πολυώνυμο <span class="m"><i>λ</i><sup>2</sup> + 1</span>, άρα ιδιοτιμές <span class="m">±<i>i</i></span>, που δεν είναι πραγματικές.</p>
+</div>
+</article>
+
+<article class="card q">
+<div class="qh">
+<span class="qn">6.</span>
+<p class="qt">Αν <span class="m"><i>λ</i></span> είναι ιδιοτιμή του αντιστρέψιμου πίνακα <span class="m"><i>A</i></span>, τότε <span class="m"><span class="frac"><span>1</span><span><i>λ</i></span></span></span> είναι ιδιοτιμή του <span class="m"><i>A</i><sup>−1</sup></span>.</p>
+<span class="badge">Μέτρια</span>
+</div>
+<div class="tf" role="group" aria-label="Απάντηση δήλωσης 6">
+<button class="opt ok" type="button" aria-disabled="true">Σωστό<span class="tag"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Σωστή</span></button>
+<button class="opt bad" type="button" aria-disabled="true">Λάθος<span class="tag"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg>Η απάντησή σας</span></button>
+</div>
+<div class="expl">
+<p><b>Η απάντησή σας ήταν λάθος. Η δήλωση είναι σωστή.</b></p>
+<p>Από <span class="m"><i>A</i><b>v</b> = <i>λ</i><b>v</b></span>, πολλαπλασιάζοντας με <span class="m"><i>A</i><sup>−1</sup></span> προκύπτει <span class="m"><i>A</i><sup>−1</sup><b>v</b> = <span class="frac"><span>1</span><span><i>λ</i></span></span><b>v</b></span>. Η <span class="m"><i>λ</i></span> δεν είναι 0, γιατί ο <span class="m"><i>A</i></span> αντιστρέφεται.</p>
+</div>
+</article>
+
+<article class="card q">
+<div class="qh">
+<span class="qn">7.</span>
+<p class="qt">Ιδιοδιανύσματα που αντιστοιχούν σε διαφορετικές ιδιοτιμές είναι γραμμικά ανεξάρτητα.</p>
+<span class="badge">Δύσκολη</span>
+</div>
+<div class="tf" role="group" aria-label="Απάντηση δήλωσης 7">
+<button class="opt" type="button">Σωστό</button>
+<button class="opt" type="button">Λάθος</button>
+</div>
+</article>
+</div>
+</main>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column">
+<p class="cap">Dark · σωστή, λανθασμένη και αναπάντητη δήλωση</p>
+<div class="sb" data-theme="dark" style="width: 1024px">
+<header class="bar">
+<div class="wrap">
+<a class="brand" href="#">StudyBox</a>
+<button class="usage" type="button">16/250 Req · 97k/250k Tokens</button>
+<button class="btn btn-sm" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg>Ιστορικό</button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Εναλλαγή θέματος">
+
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2m-7.07-17.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+</button>
+<button class="btn btn-sm btn-outline" type="button" style="margin-left: 4px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>Νέα μελέτη</button>
+</div>
+</header>
+<div class="scorebar">
+<div class="wrap" style="display: flex; flex-direction: column; gap: 8px">
+<p class="score" aria-live="polite">Σκορ: 11 / 20 · 14 απαντημένες</p>
+<div class="prog" role="progressbar" aria-label="Απαντημένες δηλώσεις" aria-valuemin="0" aria-valuemax="20" aria-valuenow="14"><span style="width: 70%"></span></div>
+</div>
+</div>
+<main style="padding: 24px 24px 64px">
+<div class="wrap" style="display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; padding-bottom: 8px">
+<div style="flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<h2 style="font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em">Σωστό ή Λάθος: Ιδιοτιμές και ιδιοδιανύσματα</h2>
+<p class="muted">Grammiki_Algevra_Dialexi_05_Idiotimes.pdf · 38 σελ.</p>
+</div>
+<div style="display: flex; gap: 4px; flex-wrap: wrap">
+<button class="btn btn-sm btn-outline" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5"></path><path d="M12 15V3"></path></svg>Λήψη PDF</button>
+<button class="btn btn-sm" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg>Αναδημιουργία</button>
+<button class="btn btn-sm" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg>Αφαίρεση</button>
+</div>
+</div>
+
+<article class="card q">
+<div class="qh">
+<span class="qn">5.</span>
+<p class="qt">Κάθε τετραγωνικός πίνακας με πραγματικά στοιχεία έχει πραγματικές ιδιοτιμές.</p>
+<span class="badge">Εύκολη</span>
+</div>
+<div class="tf" role="group" aria-label="Απάντηση δήλωσης 5">
+<button class="opt dim" type="button" disabled="">Σωστό</button>
+<button class="opt ok" type="button" aria-disabled="true">Λάθος<span class="tag"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Σωστή · Η απάντησή σας</span></button>
+</div>
+<div class="expl">
+<p><b>Απαντήσατε σωστά. Η δήλωση είναι λάθος.</b></p>
+<p>Ο πίνακας στροφής <span class="m"><span class="mat"><span style="grid-template-columns: repeat(2, auto)"><span>0</span><span>−1</span><span>1</span><span>0</span></span></span></span> έχει χαρακτηριστικό πολυώνυμο <span class="m"><i>λ</i><sup>2</sup> + 1</span>, άρα ιδιοτιμές <span class="m">±<i>i</i></span>, που δεν είναι πραγματικές.</p>
+</div>
+</article>
+
+<article class="card q">
+<div class="qh">
+<span class="qn">6.</span>
+<p class="qt">Αν <span class="m"><i>λ</i></span> είναι ιδιοτιμή του αντιστρέψιμου πίνακα <span class="m"><i>A</i></span>, τότε <span class="m"><span class="frac"><span>1</span><span><i>λ</i></span></span></span> είναι ιδιοτιμή του <span class="m"><i>A</i><sup>−1</sup></span>.</p>
+<span class="badge">Μέτρια</span>
+</div>
+<div class="tf" role="group" aria-label="Απάντηση δήλωσης 6">
+<button class="opt ok" type="button" aria-disabled="true">Σωστό<span class="tag"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Σωστή</span></button>
+<button class="opt bad" type="button" aria-disabled="true">Λάθος<span class="tag"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg>Η απάντησή σας</span></button>
+</div>
+<div class="expl">
+<p><b>Η απάντησή σας ήταν λάθος. Η δήλωση είναι σωστή.</b></p>
+<p>Από <span class="m"><i>A</i><b>v</b> = <i>λ</i><b>v</b></span>, πολλαπλασιάζοντας με <span class="m"><i>A</i><sup>−1</sup></span> προκύπτει <span class="m"><i>A</i><sup>−1</sup><b>v</b> = <span class="frac"><span>1</span><span><i>λ</i></span></span><b>v</b></span>. Η <span class="m"><i>λ</i></span> δεν είναι 0, γιατί ο <span class="m"><i>A</i></span> αντιστρέφεται.</p>
+</div>
+</article>
+
+<article class="card q">
+<div class="qh">
+<span class="qn">7.</span>
+<p class="qt">Ιδιοδιανύσματα που αντιστοιχούν σε διαφορετικές ιδιοτιμές είναι γραμμικά ανεξάρτητα.</p>
+<span class="badge">Δύσκολη</span>
+</div>
+<div class="tf" role="group" aria-label="Απάντηση δήλωσης 7">
+<button class="opt" type="button">Σωστό</button>
+<button class="opt" type="button">Λάθος</button>
+</div>
+</article>
+</div>
+</main>
+</div>
+</div>
+
+</div>
+</section>
+<section id="ab-Cards" class="abd"><h2 class="abt">7 · Κάρτες</h2>
+
+<div class="board" style="flex-direction: column; gap: 40px">
+
+<div style="display: flex; gap: 48px; align-items: flex-start">
+
+<div style="display: flex; flex-direction: column">
+<p class="cap">Light · Όψη ερώτησης</p>
+<div class="sb" data-theme="light" style="width: 720px; min-height: 620px">
+<header class="bar">
+<div class="wrap">
+<a class="brand" href="#">StudyBox</a>
+<button class="usage" type="button">17/250 Req · 104k/250k Tokens</button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Ιστορικό"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg></button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Εναλλαγή θέματος">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+
+</button>
+<button class="btn btn-sm btn-outline" type="button" style="margin-left: 4px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>Νέα μελέτη</button>
+</div>
+</header>
+<main style="padding: 24px 24px 48px">
+<div class="wrap" style="display: flex; flex-direction: column; gap: 20px">
+<div role="tablist" aria-label="Μορφές υλικού" class="tabs">
+<button class="tab" role="tab" aria-selected="false" type="button">Σύνοψη<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+<button class="tab" role="tab" aria-selected="false" type="button">Απλή εξήγηση</button>
+<button class="tab" role="tab" aria-selected="false" type="button">Quiz<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+<button class="tab" role="tab" aria-selected="false" type="button">Σωστό / Λάθος</button>
+<button class="tab" role="tab" aria-selected="true" type="button">Κάρτες<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+</div>
+<div style="display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap">
+<div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<h2 style="font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em">Κάρτες: Ιδιοτιμές</h2>
+<p class="muted">Grammiki_Algevra_Dialexi_05_Idiotimes.pdf · 38 σελ.</p>
+</div>
+<div style="display: flex; gap: 4px">
+<button class="btn btn-sm btn-icon btn-outline" type="button" aria-label="Λήψη PDF" title="Λήψη PDF"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5"></path><path d="M12 15V3"></path></svg></button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Αναδημιουργία" title="Αναδημιουργία"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg></button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Αφαίρεση" title="Αφαίρεση"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div class="meta"><span>Κάρτα 3 / 20</span><span>Γνωστές: 2</span></div>
+<div class="prog" role="progressbar" aria-label="Πρόοδος καρτών" aria-valuemin="0" aria-valuemax="20" aria-valuenow="3"><span style="width: 15%"></span></div>
+</div>
+
+
+<div style="display: flex; flex-direction: column; gap: 12px">
+<button class="card fc" type="button" aria-label="Κάρτα, όψη ερώτησης. Πατήστε για αναστροφή.">
+<span class="top"><span class="side">Ερώτηση</span><span class="badge">Μέτρια</span></span>
+<span class="body">Τι σημαίνει γεωμετρικά ότι το <span class="m">&nbsp;<b>v</b>&nbsp;</span> είναι ιδιοδιάνυσμα του <span class="m">&nbsp;<i>A</i></span>;</span>
+</button>
+<button class="btn btn-primary btn-block" type="button">Εμφάνιση απάντησης</button>
+</div>
+
+
+
+
+
+</div>
+</main>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column">
+<p class="cap">Light · Όψη απάντησης</p>
+<div class="sb" data-theme="light" style="width: 720px; min-height: 620px">
+<header class="bar">
+<div class="wrap">
+<a class="brand" href="#">StudyBox</a>
+<button class="usage" type="button">17/250 Req · 104k/250k Tokens</button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Ιστορικό"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg></button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Εναλλαγή θέματος">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+
+</button>
+<button class="btn btn-sm btn-outline" type="button" style="margin-left: 4px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>Νέα μελέτη</button>
+</div>
+</header>
+<main style="padding: 24px 24px 48px">
+<div class="wrap" style="display: flex; flex-direction: column; gap: 20px">
+<div role="tablist" aria-label="Μορφές υλικού" class="tabs">
+<button class="tab" role="tab" aria-selected="false" type="button">Σύνοψη<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+<button class="tab" role="tab" aria-selected="false" type="button">Απλή εξήγηση</button>
+<button class="tab" role="tab" aria-selected="false" type="button">Quiz<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+<button class="tab" role="tab" aria-selected="false" type="button">Σωστό / Λάθος</button>
+<button class="tab" role="tab" aria-selected="true" type="button">Κάρτες<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+</div>
+<div style="display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap">
+<div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<h2 style="font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em">Κάρτες: Ιδιοτιμές</h2>
+<p class="muted">Grammiki_Algevra_Dialexi_05_Idiotimes.pdf · 38 σελ.</p>
+</div>
+<div style="display: flex; gap: 4px">
+<button class="btn btn-sm btn-icon btn-outline" type="button" aria-label="Λήψη PDF" title="Λήψη PDF"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5"></path><path d="M12 15V3"></path></svg></button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Αναδημιουργία" title="Αναδημιουργία"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg></button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Αφαίρεση" title="Αφαίρεση"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div class="meta"><span>Κάρτα 3 / 20</span><span>Γνωστές: 2</span></div>
+<div class="prog" role="progressbar" aria-label="Πρόοδος καρτών" aria-valuemin="0" aria-valuemax="20" aria-valuenow="3"><span style="width: 15%"></span></div>
+</div>
+
+
+
+
+<div style="display: flex; flex-direction: column; gap: 12px">
+<button class="card fc back" type="button" aria-label="Κάρτα, όψη απάντησης. Πατήστε για αναστροφή.">
+<span class="top"><span class="side">Απάντηση</span><span class="badge" style="background: var(--background)">Μέτρια</span></span>
+<span class="body" style="flex-direction: column; gap: 12px"><span>Ο <span class="m"><i>A</i></span> το απεικονίζει σε διάνυσμα της ίδιας διεύθυνσης, απλώς κλιμακωμένο κατά <span class="m"><i>λ</i></span>.</span><span class="m" style="font-size: 22px"><i>A</i><b>v</b> = <i>λ</i><b>v</b></span></span>
+</button>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<button class="btn btn-outline" type="button">Δεν το γνώριζα</button>
+<button class="btn btn-primary" type="button">Το γνώριζα</button>
+</div>
+</div>
+
+
+
+</div>
+</main>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column">
+<p class="cap">Light · Ολοκλήρωση</p>
+<div class="sb" data-theme="light" style="width: 720px; min-height: 620px">
+<header class="bar">
+<div class="wrap">
+<a class="brand" href="#">StudyBox</a>
+<button class="usage" type="button">17/250 Req · 104k/250k Tokens</button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Ιστορικό"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg></button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Εναλλαγή θέματος">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+
+</button>
+<button class="btn btn-sm btn-outline" type="button" style="margin-left: 4px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>Νέα μελέτη</button>
+</div>
+</header>
+<main style="padding: 24px 24px 48px">
+<div class="wrap" style="display: flex; flex-direction: column; gap: 20px">
+<div role="tablist" aria-label="Μορφές υλικού" class="tabs">
+<button class="tab" role="tab" aria-selected="false" type="button">Σύνοψη<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+<button class="tab" role="tab" aria-selected="false" type="button">Απλή εξήγηση</button>
+<button class="tab" role="tab" aria-selected="false" type="button">Quiz<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+<button class="tab" role="tab" aria-selected="false" type="button">Σωστό / Λάθος</button>
+<button class="tab" role="tab" aria-selected="true" type="button">Κάρτες<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+</div>
+<div style="display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap">
+<div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<h2 style="font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em">Κάρτες: Ιδιοτιμές</h2>
+<p class="muted">Grammiki_Algevra_Dialexi_05_Idiotimes.pdf · 38 σελ.</p>
+</div>
+<div style="display: flex; gap: 4px">
+<button class="btn btn-sm btn-icon btn-outline" type="button" aria-label="Λήψη PDF" title="Λήψη PDF"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5"></path><path d="M12 15V3"></path></svg></button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Αναδημιουργία" title="Αναδημιουργία"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg></button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Αφαίρεση" title="Αφαίρεση"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div class="meta"><span>Κάρτα 20 / 20</span><span>Γνωστές: 15</span></div>
+<div class="prog" role="progressbar" aria-label="Πρόοδος καρτών" aria-valuemin="0" aria-valuemax="20" aria-valuenow="20"><span style="width: 100%"></span></div>
+</div>
+
+
+
+
+
+
+<div class="card" style="min-height: 240px; padding: 24px; display: flex; flex-direction: column; justify-content: center; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<p role="status" style="font-size: 20px; line-height: 28px; font-weight: 600; font-variant-numeric: tabular-nums">Γνωρίζατε 15 από 20</p>
+<p class="muted">Μπορείτε να επαναλάβετε μόνο τις κάρτες που δεν γνωρίζατε ή να ξεκινήσετε από την αρχή.</p>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<button class="btn btn-primary" type="button">Επανάληψη λαθών (5)</button>
+<button class="btn btn-outline" type="button">Από την αρχή</button>
+<button class="btn btn-outline" type="button">Ανακάτεμα</button>
+</div>
+</div>
+
+</div>
+</main>
+</div>
+</div>
+
+</div>
+
+<div style="display: flex; gap: 48px; align-items: flex-start">
+
+<div style="display: flex; flex-direction: column">
+<p class="cap">Dark · Όψη ερώτησης</p>
+<div class="sb" data-theme="dark" style="width: 720px; min-height: 620px">
+<header class="bar">
+<div class="wrap">
+<a class="brand" href="#">StudyBox</a>
+<button class="usage" type="button">17/250 Req · 104k/250k Tokens</button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Ιστορικό"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg></button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Εναλλαγή θέματος">
+
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2m-7.07-17.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+</button>
+<button class="btn btn-sm btn-outline" type="button" style="margin-left: 4px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>Νέα μελέτη</button>
+</div>
+</header>
+<main style="padding: 24px 24px 48px">
+<div class="wrap" style="display: flex; flex-direction: column; gap: 20px">
+<div role="tablist" aria-label="Μορφές υλικού" class="tabs">
+<button class="tab" role="tab" aria-selected="false" type="button">Σύνοψη<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+<button class="tab" role="tab" aria-selected="false" type="button">Απλή εξήγηση</button>
+<button class="tab" role="tab" aria-selected="false" type="button">Quiz<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+<button class="tab" role="tab" aria-selected="false" type="button">Σωστό / Λάθος</button>
+<button class="tab" role="tab" aria-selected="true" type="button">Κάρτες<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+</div>
+<div style="display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap">
+<div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<h2 style="font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em">Κάρτες: Ιδιοτιμές</h2>
+<p class="muted">Grammiki_Algevra_Dialexi_05_Idiotimes.pdf · 38 σελ.</p>
+</div>
+<div style="display: flex; gap: 4px">
+<button class="btn btn-sm btn-icon btn-outline" type="button" aria-label="Λήψη PDF" title="Λήψη PDF"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5"></path><path d="M12 15V3"></path></svg></button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Αναδημιουργία" title="Αναδημιουργία"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg></button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Αφαίρεση" title="Αφαίρεση"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div class="meta"><span>Κάρτα 3 / 20</span><span>Γνωστές: 2</span></div>
+<div class="prog" role="progressbar" aria-label="Πρόοδος καρτών" aria-valuemin="0" aria-valuemax="20" aria-valuenow="3"><span style="width: 15%"></span></div>
+</div>
+
+
+<div style="display: flex; flex-direction: column; gap: 12px">
+<button class="card fc" type="button" aria-label="Κάρτα, όψη ερώτησης. Πατήστε για αναστροφή.">
+<span class="top"><span class="side">Ερώτηση</span><span class="badge">Μέτρια</span></span>
+<span class="body">Τι σημαίνει γεωμετρικά ότι το <span class="m">&nbsp;<b>v</b>&nbsp;</span> είναι ιδιοδιάνυσμα του <span class="m">&nbsp;<i>A</i></span>;</span>
+</button>
+<button class="btn btn-primary btn-block" type="button">Εμφάνιση απάντησης</button>
+</div>
+
+
+
+
+
+</div>
+</main>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column">
+<p class="cap">Dark · Όψη απάντησης</p>
+<div class="sb" data-theme="dark" style="width: 720px; min-height: 620px">
+<header class="bar">
+<div class="wrap">
+<a class="brand" href="#">StudyBox</a>
+<button class="usage" type="button">17/250 Req · 104k/250k Tokens</button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Ιστορικό"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg></button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Εναλλαγή θέματος">
+
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2m-7.07-17.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+</button>
+<button class="btn btn-sm btn-outline" type="button" style="margin-left: 4px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>Νέα μελέτη</button>
+</div>
+</header>
+<main style="padding: 24px 24px 48px">
+<div class="wrap" style="display: flex; flex-direction: column; gap: 20px">
+<div role="tablist" aria-label="Μορφές υλικού" class="tabs">
+<button class="tab" role="tab" aria-selected="false" type="button">Σύνοψη<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+<button class="tab" role="tab" aria-selected="false" type="button">Απλή εξήγηση</button>
+<button class="tab" role="tab" aria-selected="false" type="button">Quiz<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+<button class="tab" role="tab" aria-selected="false" type="button">Σωστό / Λάθος</button>
+<button class="tab" role="tab" aria-selected="true" type="button">Κάρτες<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+</div>
+<div style="display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap">
+<div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<h2 style="font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em">Κάρτες: Ιδιοτιμές</h2>
+<p class="muted">Grammiki_Algevra_Dialexi_05_Idiotimes.pdf · 38 σελ.</p>
+</div>
+<div style="display: flex; gap: 4px">
+<button class="btn btn-sm btn-icon btn-outline" type="button" aria-label="Λήψη PDF" title="Λήψη PDF"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5"></path><path d="M12 15V3"></path></svg></button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Αναδημιουργία" title="Αναδημιουργία"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg></button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Αφαίρεση" title="Αφαίρεση"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div class="meta"><span>Κάρτα 3 / 20</span><span>Γνωστές: 2</span></div>
+<div class="prog" role="progressbar" aria-label="Πρόοδος καρτών" aria-valuemin="0" aria-valuemax="20" aria-valuenow="3"><span style="width: 15%"></span></div>
+</div>
+
+
+
+
+<div style="display: flex; flex-direction: column; gap: 12px">
+<button class="card fc back" type="button" aria-label="Κάρτα, όψη απάντησης. Πατήστε για αναστροφή.">
+<span class="top"><span class="side">Απάντηση</span><span class="badge" style="background: var(--background)">Μέτρια</span></span>
+<span class="body" style="flex-direction: column; gap: 12px"><span>Ο <span class="m"><i>A</i></span> το απεικονίζει σε διάνυσμα της ίδιας διεύθυνσης, απλώς κλιμακωμένο κατά <span class="m"><i>λ</i></span>.</span><span class="m" style="font-size: 22px"><i>A</i><b>v</b> = <i>λ</i><b>v</b></span></span>
+</button>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<button class="btn btn-outline" type="button">Δεν το γνώριζα</button>
+<button class="btn btn-primary" type="button">Το γνώριζα</button>
+</div>
+</div>
+
+
+
+</div>
+</main>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column">
+<p class="cap">Dark · Ολοκλήρωση</p>
+<div class="sb" data-theme="dark" style="width: 720px; min-height: 620px">
+<header class="bar">
+<div class="wrap">
+<a class="brand" href="#">StudyBox</a>
+<button class="usage" type="button">17/250 Req · 104k/250k Tokens</button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Ιστορικό"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg></button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Εναλλαγή θέματος">
+
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2m-7.07-17.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+</button>
+<button class="btn btn-sm btn-outline" type="button" style="margin-left: 4px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>Νέα μελέτη</button>
+</div>
+</header>
+<main style="padding: 24px 24px 48px">
+<div class="wrap" style="display: flex; flex-direction: column; gap: 20px">
+<div role="tablist" aria-label="Μορφές υλικού" class="tabs">
+<button class="tab" role="tab" aria-selected="false" type="button">Σύνοψη<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+<button class="tab" role="tab" aria-selected="false" type="button">Απλή εξήγηση</button>
+<button class="tab" role="tab" aria-selected="false" type="button">Quiz<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+<button class="tab" role="tab" aria-selected="false" type="button">Σωστό / Λάθος</button>
+<button class="tab" role="tab" aria-selected="true" type="button">Κάρτες<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+</div>
+<div style="display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap">
+<div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<h2 style="font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em">Κάρτες: Ιδιοτιμές</h2>
+<p class="muted">Grammiki_Algevra_Dialexi_05_Idiotimes.pdf · 38 σελ.</p>
+</div>
+<div style="display: flex; gap: 4px">
+<button class="btn btn-sm btn-icon btn-outline" type="button" aria-label="Λήψη PDF" title="Λήψη PDF"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5"></path><path d="M12 15V3"></path></svg></button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Αναδημιουργία" title="Αναδημιουργία"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg></button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Αφαίρεση" title="Αφαίρεση"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div class="meta"><span>Κάρτα 20 / 20</span><span>Γνωστές: 15</span></div>
+<div class="prog" role="progressbar" aria-label="Πρόοδος καρτών" aria-valuemin="0" aria-valuemax="20" aria-valuenow="20"><span style="width: 100%"></span></div>
+</div>
+
+
+
+
+
+
+<div class="card" style="min-height: 240px; padding: 24px; display: flex; flex-direction: column; justify-content: center; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<p role="status" style="font-size: 20px; line-height: 28px; font-weight: 600; font-variant-numeric: tabular-nums">Γνωρίζατε 15 από 20</p>
+<p class="muted">Μπορείτε να επαναλάβετε μόνο τις κάρτες που δεν γνωρίζατε ή να ξεκινήσετε από την αρχή.</p>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<button class="btn btn-primary" type="button">Επανάληψη λαθών (5)</button>
+<button class="btn btn-outline" type="button">Από την αρχή</button>
+<button class="btn btn-outline" type="button">Ανακάτεμα</button>
+</div>
+</div>
+
+</div>
+</main>
+</div>
+</div>
+
+</div>
+
+</div>
+</section>
+<section id="ab-History" class="abd"><h2 class="abt">8 · Ιστορικό</h2>
+
+<div class="board" style="flex-direction: column; gap: 40px">
+
+<div style="display: flex; gap: 48px; align-items: flex-start">
+
+<div style="display: flex; flex-direction: column">
+<p class="cap">Light · Sheet ανοιχτό με ιστορικό (ενεργή γραμμή, κάδος σε hover, focus πληκτρολογίου)</p>
+<div class="sb" data-theme="light" style="width: 1024px; height: 760px">
+<header class="bar">
+<div class="wrap">
+<a class="brand" href="#">StudyBox</a>
+<button class="usage" type="button">17/250 Req · 104k/250k Tokens</button>
+<button class="btn btn-sm" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg>Ιστορικό</button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Εναλλαγή θέματος">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+
+</button>
+<button class="btn btn-sm btn-outline" type="button" style="margin-left: 4px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>Νέα μελέτη</button>
+</div>
+</header>
+<div style="padding: 48px 24px" aria-hidden="true">
+<div class="wrap" style="display: flex; flex-direction: column; gap: 8px">
+<p style="font-size: 30px; line-height: 36px; font-weight: 600; letter-spacing: -0.02em">Υλικό μελέτης από τις διαλέξεις σας</p>
+<p class="muted" style="font-size: 16px; line-height: 24px">Ανεβάστε ένα PDF διάλεξης και δημιουργήστε Σύνοψη, Απλή εξήγηση, Quiz, Σωστό / Λάθος και Κάρτες στα ελληνικά.</p>
+<div class="card" style="height: 160px; margin-top: 24px"></div>
+</div>
+</div>
+<div class="overlay"></div>
+<aside class="sheet" role="dialog" aria-modal="true" aria-labelledby="h-light-full">
+<div style="display: flex; align-items: flex-start; gap: 8px; padding: 16px 16px 12px 20px">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+<h2 id="h-light-full" style="font-size: 16px; line-height: 24px; font-weight: 600">Ιστορικό</h2>
+<p class="muted" style="font-size: 12px; line-height: 16px">Αποθηκεύεται μόνο σε αυτόν τον browser.</p>
+</div>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Κλείσιμο"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+</div>
+<div class="sep"></div>
+
+<nav aria-label="Μελέτες" style="flex: 1; overflow-y: auto; padding: 0 8px 16px">
+
+<p class="grp">Σήμερα</p>
+
+<div class="hrow active">
+<button class="hb " type="button" aria-current="true"><span class="t">Grammiki_Algevra_Dialexi_05_Idiotimes.pdf</span><span class="f">Σύνοψη · Quiz · Κάρτες</span></button>
+<button class="btn btn-sm btn-icon trash " type="button" aria-label="Διαγραφή μελέτης Grammiki_Algevra_Dialexi_05_Idiotimes.pdf"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><path d="M10 11v6M14 11v6"></path></svg></button>
+</div>
+
+<div class="hrow ">
+<button class="hb " type="button" aria-current="false"><span class="t">Pithanotites_Dialexi_03_Desmevmeni_Pithanotita.pdf</span><span class="f">Απλή εξήγηση · Σωστό / Λάθος</span></button>
+<button class="btn btn-sm btn-icon trash hot" type="button" aria-label="Διαγραφή μελέτης Pithanotites_Dialexi_03_Desmevmeni_Pithanotita.pdf"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><path d="M10 11v6M14 11v6"></path></svg></button>
+</div>
+
+
+<p class="grp">Χθες</p>
+
+<div class="hrow ">
+<button class="hb focus" type="button" aria-current="false"><span class="t">Grammiki_Algevra_Dialexi_04_Orizouses.pdf</span><span class="f">Σύνοψη · Quiz</span></button>
+<button class="btn btn-sm btn-icon trash " type="button" aria-label="Διαγραφή μελέτης Grammiki_Algevra_Dialexi_04_Orizouses.pdf"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><path d="M10 11v6M14 11v6"></path></svg></button>
+</div>
+
+<div class="hrow ">
+<button class="hb " type="button" aria-current="false"><span class="t">Diakrita_Mathimatika_Grafoi_Eisagogi.pdf</span><span class="f">Κάρτες</span></button>
+<button class="btn btn-sm btn-icon trash " type="button" aria-label="Διαγραφή μελέτης Diakrita_Mathimatika_Grafoi_Eisagogi.pdf"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><path d="M10 11v6M14 11v6"></path></svg></button>
+</div>
+
+
+<p class="grp">Αυτή την εβδομάδα</p>
+
+<div class="hrow ">
+<button class="hb " type="button" aria-current="false"><span class="t">Analysi_II_Seires_Taylor_kai_Maclaurin_Simeioseis_Mathimatos.pdf</span><span class="f">Σύνοψη · Απλή εξήγηση · Quiz · Σωστό / Λάθος · Κάρτες</span></button>
+<button class="btn btn-sm btn-icon trash " type="button" aria-label="Διαγραφή μελέτης Analysi_II_Seires_Taylor_kai_Maclaurin_Simeioseis_Mathimatos.pdf"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><path d="M10 11v6M14 11v6"></path></svg></button>
+</div>
+
+<div class="hrow ">
+<button class="hb " type="button" aria-current="false"><span class="t">Domes_Dedomenon_Dialexi_07_Dentra_AVL.pdf</span><span class="f">Quiz</span></button>
+<button class="btn btn-sm btn-icon trash " type="button" aria-label="Διαγραφή μελέτης Domes_Dedomenon_Dialexi_07_Dentra_AVL.pdf"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><path d="M10 11v6M14 11v6"></path></svg></button>
+</div>
+
+
+<p class="grp">Αυτόν τον μήνα</p>
+
+<div class="hrow ">
+<button class="hb " type="button" aria-current="false"><span class="t">Grammiki_Algevra_Dialexi_03_Dianysmatikoi_Xoroi.pdf</span><span class="f">Σύνοψη</span></button>
+<button class="btn btn-sm btn-icon trash " type="button" aria-label="Διαγραφή μελέτης Grammiki_Algevra_Dialexi_03_Dianysmatikoi_Xoroi.pdf"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><path d="M10 11v6M14 11v6"></path></svg></button>
+</div>
+
+<div class="hrow ">
+<button class="hb " type="button" aria-current="false"><span class="t">Arxitektoniki_Ypologiston_Pipelining.pdf</span><span class="f">Σύνοψη · Κάρτες</span></button>
+<button class="btn btn-sm btn-icon trash " type="button" aria-label="Διαγραφή μελέτης Arxitektoniki_Ypologiston_Pipelining.pdf"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><path d="M10 11v6M14 11v6"></path></svg></button>
+</div>
+
+
+<p class="grp">Παλαιότερα</p>
+
+<div class="hrow ">
+<button class="hb " type="button" aria-current="false"><span class="t">Grammiki_Algevra_Dialexi_01_Pinakes.pdf</span><span class="f">Quiz · Κάρτες</span></button>
+<button class="btn btn-sm btn-icon trash " type="button" aria-label="Διαγραφή μελέτης Grammiki_Algevra_Dialexi_01_Pinakes.pdf"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><path d="M10 11v6M14 11v6"></path></svg></button>
+</div>
+
+
+</nav>
+
+
+</aside>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column">
+<p class="cap">Light · Sheet ανοιχτό, κενό ιστορικό</p>
+<div class="sb" data-theme="light" style="width: 1024px; height: 760px">
+<header class="bar">
+<div class="wrap">
+<a class="brand" href="#">StudyBox</a>
+<button class="usage" type="button">17/250 Req · 104k/250k Tokens</button>
+<button class="btn btn-sm" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg>Ιστορικό</button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Εναλλαγή θέματος">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+
+</button>
+<button class="btn btn-sm btn-outline" type="button" style="margin-left: 4px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>Νέα μελέτη</button>
+</div>
+</header>
+<div style="padding: 48px 24px" aria-hidden="true">
+<div class="wrap" style="display: flex; flex-direction: column; gap: 8px">
+<p style="font-size: 30px; line-height: 36px; font-weight: 600; letter-spacing: -0.02em">Υλικό μελέτης από τις διαλέξεις σας</p>
+<p class="muted" style="font-size: 16px; line-height: 24px">Ανεβάστε ένα PDF διάλεξης και δημιουργήστε Σύνοψη, Απλή εξήγηση, Quiz, Σωστό / Λάθος και Κάρτες στα ελληνικά.</p>
+<div class="card" style="height: 160px; margin-top: 24px"></div>
+</div>
+</div>
+<div class="overlay"></div>
+<aside class="sheet" role="dialog" aria-modal="true" aria-labelledby="h-light-empty">
+<div style="display: flex; align-items: flex-start; gap: 8px; padding: 16px 16px 12px 20px">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+<h2 id="h-light-empty" style="font-size: 16px; line-height: 24px; font-weight: 600">Ιστορικό</h2>
+<p class="muted" style="font-size: 12px; line-height: 16px">Αποθηκεύεται μόνο σε αυτόν τον browser.</p>
+</div>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Κλείσιμο"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+</div>
+<div class="sep"></div>
+
+
+<div style="padding: 24px 20px">
+<p class="muted">Δεν υπάρχει ιστορικό. Το υλικό που δημιουργείτε θα εμφανίζεται εδώ.</p>
+</div>
+
+</aside>
+</div>
+</div>
+
+</div>
+
+<div style="display: flex; gap: 48px; align-items: flex-start">
+
+<div style="display: flex; flex-direction: column">
+<p class="cap">Dark · Sheet ανοιχτό με ιστορικό (ενεργή γραμμή, κάδος σε hover, focus πληκτρολογίου)</p>
+<div class="sb" data-theme="dark" style="width: 1024px; height: 760px">
+<header class="bar">
+<div class="wrap">
+<a class="brand" href="#">StudyBox</a>
+<button class="usage" type="button">17/250 Req · 104k/250k Tokens</button>
+<button class="btn btn-sm" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg>Ιστορικό</button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Εναλλαγή θέματος">
+
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2m-7.07-17.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+</button>
+<button class="btn btn-sm btn-outline" type="button" style="margin-left: 4px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>Νέα μελέτη</button>
+</div>
+</header>
+<div style="padding: 48px 24px" aria-hidden="true">
+<div class="wrap" style="display: flex; flex-direction: column; gap: 8px">
+<p style="font-size: 30px; line-height: 36px; font-weight: 600; letter-spacing: -0.02em">Υλικό μελέτης από τις διαλέξεις σας</p>
+<p class="muted" style="font-size: 16px; line-height: 24px">Ανεβάστε ένα PDF διάλεξης και δημιουργήστε Σύνοψη, Απλή εξήγηση, Quiz, Σωστό / Λάθος και Κάρτες στα ελληνικά.</p>
+<div class="card" style="height: 160px; margin-top: 24px"></div>
+</div>
+</div>
+<div class="overlay"></div>
+<aside class="sheet" role="dialog" aria-modal="true" aria-labelledby="h-dark-full">
+<div style="display: flex; align-items: flex-start; gap: 8px; padding: 16px 16px 12px 20px">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+<h2 id="h-dark-full" style="font-size: 16px; line-height: 24px; font-weight: 600">Ιστορικό</h2>
+<p class="muted" style="font-size: 12px; line-height: 16px">Αποθηκεύεται μόνο σε αυτόν τον browser.</p>
+</div>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Κλείσιμο"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+</div>
+<div class="sep"></div>
+
+<nav aria-label="Μελέτες" style="flex: 1; overflow-y: auto; padding: 0 8px 16px">
+
+<p class="grp">Σήμερα</p>
+
+<div class="hrow active">
+<button class="hb " type="button" aria-current="true"><span class="t">Grammiki_Algevra_Dialexi_05_Idiotimes.pdf</span><span class="f">Σύνοψη · Quiz · Κάρτες</span></button>
+<button class="btn btn-sm btn-icon trash " type="button" aria-label="Διαγραφή μελέτης Grammiki_Algevra_Dialexi_05_Idiotimes.pdf"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><path d="M10 11v6M14 11v6"></path></svg></button>
+</div>
+
+<div class="hrow ">
+<button class="hb " type="button" aria-current="false"><span class="t">Pithanotites_Dialexi_03_Desmevmeni_Pithanotita.pdf</span><span class="f">Απλή εξήγηση · Σωστό / Λάθος</span></button>
+<button class="btn btn-sm btn-icon trash hot" type="button" aria-label="Διαγραφή μελέτης Pithanotites_Dialexi_03_Desmevmeni_Pithanotita.pdf"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><path d="M10 11v6M14 11v6"></path></svg></button>
+</div>
+
+
+<p class="grp">Χθες</p>
+
+<div class="hrow ">
+<button class="hb focus" type="button" aria-current="false"><span class="t">Grammiki_Algevra_Dialexi_04_Orizouses.pdf</span><span class="f">Σύνοψη · Quiz</span></button>
+<button class="btn btn-sm btn-icon trash " type="button" aria-label="Διαγραφή μελέτης Grammiki_Algevra_Dialexi_04_Orizouses.pdf"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><path d="M10 11v6M14 11v6"></path></svg></button>
+</div>
+
+<div class="hrow ">
+<button class="hb " type="button" aria-current="false"><span class="t">Diakrita_Mathimatika_Grafoi_Eisagogi.pdf</span><span class="f">Κάρτες</span></button>
+<button class="btn btn-sm btn-icon trash " type="button" aria-label="Διαγραφή μελέτης Diakrita_Mathimatika_Grafoi_Eisagogi.pdf"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><path d="M10 11v6M14 11v6"></path></svg></button>
+</div>
+
+
+<p class="grp">Αυτή την εβδομάδα</p>
+
+<div class="hrow ">
+<button class="hb " type="button" aria-current="false"><span class="t">Analysi_II_Seires_Taylor_kai_Maclaurin_Simeioseis_Mathimatos.pdf</span><span class="f">Σύνοψη · Απλή εξήγηση · Quiz · Σωστό / Λάθος · Κάρτες</span></button>
+<button class="btn btn-sm btn-icon trash " type="button" aria-label="Διαγραφή μελέτης Analysi_II_Seires_Taylor_kai_Maclaurin_Simeioseis_Mathimatos.pdf"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><path d="M10 11v6M14 11v6"></path></svg></button>
+</div>
+
+<div class="hrow ">
+<button class="hb " type="button" aria-current="false"><span class="t">Domes_Dedomenon_Dialexi_07_Dentra_AVL.pdf</span><span class="f">Quiz</span></button>
+<button class="btn btn-sm btn-icon trash " type="button" aria-label="Διαγραφή μελέτης Domes_Dedomenon_Dialexi_07_Dentra_AVL.pdf"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><path d="M10 11v6M14 11v6"></path></svg></button>
+</div>
+
+
+<p class="grp">Αυτόν τον μήνα</p>
+
+<div class="hrow ">
+<button class="hb " type="button" aria-current="false"><span class="t">Grammiki_Algevra_Dialexi_03_Dianysmatikoi_Xoroi.pdf</span><span class="f">Σύνοψη</span></button>
+<button class="btn btn-sm btn-icon trash " type="button" aria-label="Διαγραφή μελέτης Grammiki_Algevra_Dialexi_03_Dianysmatikoi_Xoroi.pdf"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><path d="M10 11v6M14 11v6"></path></svg></button>
+</div>
+
+<div class="hrow ">
+<button class="hb " type="button" aria-current="false"><span class="t">Arxitektoniki_Ypologiston_Pipelining.pdf</span><span class="f">Σύνοψη · Κάρτες</span></button>
+<button class="btn btn-sm btn-icon trash " type="button" aria-label="Διαγραφή μελέτης Arxitektoniki_Ypologiston_Pipelining.pdf"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><path d="M10 11v6M14 11v6"></path></svg></button>
+</div>
+
+
+<p class="grp">Παλαιότερα</p>
+
+<div class="hrow ">
+<button class="hb " type="button" aria-current="false"><span class="t">Grammiki_Algevra_Dialexi_01_Pinakes.pdf</span><span class="f">Quiz · Κάρτες</span></button>
+<button class="btn btn-sm btn-icon trash " type="button" aria-label="Διαγραφή μελέτης Grammiki_Algevra_Dialexi_01_Pinakes.pdf"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><path d="M10 11v6M14 11v6"></path></svg></button>
+</div>
+
+
+</nav>
+
+
+</aside>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column">
+<p class="cap">Dark · Sheet ανοιχτό, κενό ιστορικό</p>
+<div class="sb" data-theme="dark" style="width: 1024px; height: 760px">
+<header class="bar">
+<div class="wrap">
+<a class="brand" href="#">StudyBox</a>
+<button class="usage" type="button">17/250 Req · 104k/250k Tokens</button>
+<button class="btn btn-sm" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg>Ιστορικό</button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Εναλλαγή θέματος">
+
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2m-7.07-17.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+</button>
+<button class="btn btn-sm btn-outline" type="button" style="margin-left: 4px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg>Νέα μελέτη</button>
+</div>
+</header>
+<div style="padding: 48px 24px" aria-hidden="true">
+<div class="wrap" style="display: flex; flex-direction: column; gap: 8px">
+<p style="font-size: 30px; line-height: 36px; font-weight: 600; letter-spacing: -0.02em">Υλικό μελέτης από τις διαλέξεις σας</p>
+<p class="muted" style="font-size: 16px; line-height: 24px">Ανεβάστε ένα PDF διάλεξης και δημιουργήστε Σύνοψη, Απλή εξήγηση, Quiz, Σωστό / Λάθος και Κάρτες στα ελληνικά.</p>
+<div class="card" style="height: 160px; margin-top: 24px"></div>
+</div>
+</div>
+<div class="overlay"></div>
+<aside class="sheet" role="dialog" aria-modal="true" aria-labelledby="h-dark-empty">
+<div style="display: flex; align-items: flex-start; gap: 8px; padding: 16px 16px 12px 20px">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+<h2 id="h-dark-empty" style="font-size: 16px; line-height: 24px; font-weight: 600">Ιστορικό</h2>
+<p class="muted" style="font-size: 12px; line-height: 16px">Αποθηκεύεται μόνο σε αυτόν τον browser.</p>
+</div>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Κλείσιμο"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+</div>
+<div class="sep"></div>
+
+
+<div style="padding: 24px 20px">
+<p class="muted">Δεν υπάρχει ιστορικό. Το υλικό που δημιουργείτε θα εμφανίζεται εδώ.</p>
+</div>
+
+</aside>
+</div>
+</div>
+
+</div>
+
+</div>
+</section>
+<section id="ab-Mobile" class="abd"><h2 class="abt">9 · Κινητό</h2>
+
+<div class="board" style="flex-wrap: nowrap">
+
+
+<div style="display: flex; flex-direction: column">
+<p class="cap">Light · Αρχική</p>
+<div class="sb" data-theme="light" style="width: 360px; height: 760px">
+<header class="bar mbar">
+<div class="wrap">
+<a class="brand" href="#">StudyBox</a>
+<button class="btn btn-icon" type="button" aria-label="Ιστορικό"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg></button>
+<button class="btn btn-icon" type="button" aria-label="Εναλλαγή θέματος">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+
+</button>
+<button class="btn btn-icon btn-outline" type="button" aria-label="Νέα μελέτη"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg></button>
+</div>
+</header>
+<main style="padding: 24px 16px 40px; display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<h1 style="font-size: 30px; line-height: 36px; font-weight: 600; letter-spacing: -0.02em">Υλικό μελέτης από τις διαλέξεις σας</h1>
+<p class="muted" style="font-size: 16px; line-height: 24px">Ανεβάστε ένα PDF διάλεξης και δημιουργήστε Σύνοψη, Απλή εξήγηση, Quiz, Σωστό / Λάθος και Κάρτες στα ελληνικά.</p>
+</div>
+<label class="card" style="min-height: 160px; padding: 20px; display: flex; flex-direction: column; justify-content: center; gap: 12px; cursor: pointer">
+<input class="sr" type="file" accept="application/pdf">
+<span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 16px; line-height: 24px; font-weight: 500">Σύρετε ένα PDF εδώ</span><span class="muted">PDF, έως 20 MB</span></span>
+<span class="btn btn-outline btn-block">Επιλογή αρχείου</span>
+</label>
+<section style="display: flex; flex-direction: column; gap: 4px">
+<h2 style="font-size: 16px; line-height: 24px; font-weight: 600">Τι θα λάβετε</h2>
+<div style="display: flex; flex-direction: column">
+
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 10px 0; border-bottom: 1px solid var(--border)">
+<span style="font-weight: 500">Σύνοψη</span>
+<span class="muted">Οργανωμένα βασικά σημεία και τύποι.</span>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 10px 0; border-bottom: 1px solid var(--border)">
+<span style="font-weight: 500">Απλή εξήγηση</span>
+<span class="muted">Η ύλη με απλά λόγια.</span>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 10px 0; border-bottom: 1px solid var(--border)">
+<span style="font-weight: 500">Quiz</span>
+<span class="muted">20 ερωτήσεις πολλαπλής επιλογής με εξήγηση.</span>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 10px 0; border-bottom: 1px solid var(--border)">
+<span style="font-weight: 500">Σωστό / Λάθος</span>
+<span class="muted">20 δηλώσεις με εξήγηση.</span>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 10px 0; border-bottom: 1px solid var(--border)">
+<span style="font-weight: 500">Κάρτες</span>
+<span class="muted">20 κάρτες με επανάληψη όσων δεν γνωρίζατε.</span>
+</div>
+
+</div>
+</section>
+</main>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column">
+<p class="cap">Light · Quiz</p>
+<div class="sb" data-theme="light" style="width: 360px; height: 760px">
+<header class="bar mbar">
+<div class="wrap">
+<a class="brand" href="#">StudyBox</a>
+<button class="btn btn-icon" type="button" aria-label="Ιστορικό"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg></button>
+<button class="btn btn-icon" type="button" aria-label="Εναλλαγή θέματος">
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+
+</button>
+<button class="btn btn-icon btn-outline" type="button" aria-label="Νέα μελέτη"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg></button>
+</div>
+</header>
+<div class="scorebar" style="padding: 10px 16px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<p class="score">Σκορ: 7 / 20 · 9 απαντημένες</p>
+<div class="prog" role="progressbar" aria-label="Απαντημένες ερωτήσεις" aria-valuemin="0" aria-valuemax="20" aria-valuenow="9"><span style="width: 45%"></span></div>
+</div>
+</div>
+<main style="padding: 16px; display: flex; flex-direction: column; gap: 16px">
+<div role="tablist" aria-label="Μορφές υλικού" class="tabs">
+<button class="tab" role="tab" aria-selected="false" type="button">Σύνοψη<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+<button class="tab" role="tab" aria-selected="false" type="button">Απλή εξήγηση</button>
+<button class="tab" role="tab" aria-selected="true" type="button">Quiz<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+<button class="tab" role="tab" aria-selected="false" type="button">Σωστό / Λάθος</button>
+<button class="tab" role="tab" aria-selected="false" type="button">Κάρτες</button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<h2 style="font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em">Quiz: Ιδιοτιμές και διαγωνοποίηση</h2>
+<p class="muted" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Grammiki_Algevra_Dialexi_05_Idiotimes.pdf · 38 σελ.</p>
+<div style="display: flex; gap: 4px; flex-wrap: wrap">
+<button class="btn btn-sm btn-outline" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5"></path><path d="M12 15V3"></path></svg>Λήψη PDF</button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Αναδημιουργία" style="width: 40px; height: 40px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg></button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Αφαίρεση" style="width: 40px; height: 40px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+</div>
+</div>
+<article class="card q">
+<div class="qh">
+<span style="font-weight: 600; color: var(--muted-foreground)">9.</span>
+<span class="badge" style="margin-left: auto">Εύκολη</span>
+<p class="qt">Ένας πίνακας <span class="m"><i>A</i></span> 3 × 3 έχει ιδιοτιμές 1, 2 και 0. Ποιο ισχύει;</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<button class="opt bad" type="button" aria-disabled="true" style="flex-wrap: wrap"><span class="let">Α</span><span class="txt">Ο <span class="m"><i>A</i></span> αντιστρέφεται</span><span class="tag"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg>Η απάντησή σας</span></button>
+<button class="opt ok" type="button" aria-disabled="true"><span class="let">Β</span><span class="txt"><span class="m">det(<i>A</i>) = 0</span></span><span class="tag"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Σωστή</span></button>
+<button class="opt dim" type="button" disabled=""><span class="let">Γ</span><span class="txt"><span class="m">tr(<i>A</i>) = 0</span></span></button>
+<button class="opt dim" type="button" disabled=""><span class="let">Δ</span><span class="txt">Δεν διαγωνοποιείται</span></button>
+</div>
+<div class="expl">
+<p>Ένας πίνακας αντιστρέφεται μόνο αν καμία ιδιοτιμή του δεν είναι 0.</p>
+<p><b>Σωστή απάντηση (Β):</b> <span class="m">det(<i>A</i>) = 1 · 2 · 0 = 0</span>.</p>
+</div>
+</article>
+</main>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column">
+<p class="cap">Light · Ιστορικό, με τη χρήση στο κάτω μέρος</p>
+<div class="sb" data-theme="light" style="width: 360px; height: 760px">
+<aside class="sheet" role="dialog" aria-modal="true" aria-label="Ιστορικό" style="width: 100%; border-left: 0; box-shadow: none">
+<div style="display: flex; align-items: flex-start; gap: 8px; padding: 12px 12px 12px 16px">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 2px; padding-top: 4px">
+<h2 style="font-size: 16px; line-height: 24px; font-weight: 600">Ιστορικό</h2>
+<p class="muted" style="font-size: 12px; line-height: 16px">Αποθηκεύεται μόνο σε αυτόν τον browser.</p>
+</div>
+<button class="btn btn-icon" type="button" aria-label="Κλείσιμο" style="width: 40px; height: 40px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+</div>
+<div class="sep"></div>
+<nav aria-label="Μελέτες" style="flex: 1; overflow-y: auto; padding: 0 8px 12px">
+<p class="grp">Σήμερα</p>
+<div class="hrow active"><button class="btn" type="button" aria-current="true" style="all: unset; flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; cursor: pointer"><span style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Grammiki_Algevra_Dialexi_05_Idiotimes.pdf</span><span class="muted" style="font-size: 12px; line-height: 16px">Σύνοψη · Quiz · Κάρτες</span></button><button class="btn btn-icon muted" type="button" aria-label="Διαγραφή μελέτης" style="width: 40px; height: 40px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><path d="M10 11v6M14 11v6"></path></svg></button></div>
+<div class="hrow"><button class="btn" type="button" style="all: unset; flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; cursor: pointer"><span style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Pithanotites_Dialexi_03_Desmevmeni_Pithanotita.pdf</span><span class="muted" style="font-size: 12px; line-height: 16px">Απλή εξήγηση · Σωστό / Λάθος</span></button><button class="btn btn-icon muted" type="button" aria-label="Διαγραφή μελέτης" style="width: 40px; height: 40px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><path d="M10 11v6M14 11v6"></path></svg></button></div>
+<p class="grp">Χθες</p>
+<div class="hrow"><button class="btn" type="button" style="all: unset; flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; cursor: pointer"><span style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Grammiki_Algevra_Dialexi_04_Orizouses.pdf</span><span class="muted" style="font-size: 12px; line-height: 16px">Σύνοψη · Quiz</span></button><button class="btn btn-icon muted" type="button" aria-label="Διαγραφή μελέτης" style="width: 40px; height: 40px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><path d="M10 11v6M14 11v6"></path></svg></button></div>
+<p class="grp">Αυτή την εβδομάδα</p>
+<div class="hrow"><button class="btn" type="button" style="all: unset; flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; cursor: pointer"><span style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Analysi_II_Seires_Taylor_kai_Maclaurin.pdf</span><span class="muted" style="font-size: 12px; line-height: 16px">Σύνοψη · Απλή εξήγηση · Quiz</span></button><button class="btn btn-icon muted" type="button" aria-label="Διαγραφή μελέτης" style="width: 40px; height: 40px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><path d="M10 11v6M14 11v6"></path></svg></button></div>
+</nav>
+<div class="sep"></div>
+<div style="padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 4px">
+<p style="font-size: 12px; line-height: 16px; font-weight: 500; font-variant-numeric: tabular-nums">17/250 Req · 104k/250k Tokens</p>
+<p class="muted" style="font-size: 12px; line-height: 16px">Σημερινή χρήση σε σχέση με τα ημερήσια όρια του Gemini. Μηδενίζει κάθε μέρα.</p>
+</div>
+</aside>
+</div>
+</div>
+
+
+
+<div style="display: flex; flex-direction: column">
+<p class="cap">Dark · Αρχική</p>
+<div class="sb" data-theme="dark" style="width: 360px; height: 760px">
+<header class="bar mbar">
+<div class="wrap">
+<a class="brand" href="#">StudyBox</a>
+<button class="btn btn-icon" type="button" aria-label="Ιστορικό"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg></button>
+<button class="btn btn-icon" type="button" aria-label="Εναλλαγή θέματος">
+
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2m-7.07-17.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+</button>
+<button class="btn btn-icon btn-outline" type="button" aria-label="Νέα μελέτη"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg></button>
+</div>
+</header>
+<main style="padding: 24px 16px 40px; display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<h1 style="font-size: 30px; line-height: 36px; font-weight: 600; letter-spacing: -0.02em">Υλικό μελέτης από τις διαλέξεις σας</h1>
+<p class="muted" style="font-size: 16px; line-height: 24px">Ανεβάστε ένα PDF διάλεξης και δημιουργήστε Σύνοψη, Απλή εξήγηση, Quiz, Σωστό / Λάθος και Κάρτες στα ελληνικά.</p>
+</div>
+<label class="card" style="min-height: 160px; padding: 20px; display: flex; flex-direction: column; justify-content: center; gap: 12px; cursor: pointer">
+<input class="sr" type="file" accept="application/pdf">
+<span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 16px; line-height: 24px; font-weight: 500">Σύρετε ένα PDF εδώ</span><span class="muted">PDF, έως 20 MB</span></span>
+<span class="btn btn-outline btn-block">Επιλογή αρχείου</span>
+</label>
+<section style="display: flex; flex-direction: column; gap: 4px">
+<h2 style="font-size: 16px; line-height: 24px; font-weight: 600">Τι θα λάβετε</h2>
+<div style="display: flex; flex-direction: column">
+
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 10px 0; border-bottom: 1px solid var(--border)">
+<span style="font-weight: 500">Σύνοψη</span>
+<span class="muted">Οργανωμένα βασικά σημεία και τύποι.</span>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 10px 0; border-bottom: 1px solid var(--border)">
+<span style="font-weight: 500">Απλή εξήγηση</span>
+<span class="muted">Η ύλη με απλά λόγια.</span>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 10px 0; border-bottom: 1px solid var(--border)">
+<span style="font-weight: 500">Quiz</span>
+<span class="muted">20 ερωτήσεις πολλαπλής επιλογής με εξήγηση.</span>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 10px 0; border-bottom: 1px solid var(--border)">
+<span style="font-weight: 500">Σωστό / Λάθος</span>
+<span class="muted">20 δηλώσεις με εξήγηση.</span>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 10px 0; border-bottom: 1px solid var(--border)">
+<span style="font-weight: 500">Κάρτες</span>
+<span class="muted">20 κάρτες με επανάληψη όσων δεν γνωρίζατε.</span>
+</div>
+
+</div>
+</section>
+</main>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column">
+<p class="cap">Dark · Quiz</p>
+<div class="sb" data-theme="dark" style="width: 360px; height: 760px">
+<header class="bar mbar">
+<div class="wrap">
+<a class="brand" href="#">StudyBox</a>
+<button class="btn btn-icon" type="button" aria-label="Ιστορικό"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg></button>
+<button class="btn btn-icon" type="button" aria-label="Εναλλαγή θέματος">
+
+<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2m-7.07-17.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>
+</button>
+<button class="btn btn-icon btn-outline" type="button" aria-label="Νέα μελέτη"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"></path></svg></button>
+</div>
+</header>
+<div class="scorebar" style="padding: 10px 16px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<p class="score">Σκορ: 7 / 20 · 9 απαντημένες</p>
+<div class="prog" role="progressbar" aria-label="Απαντημένες ερωτήσεις" aria-valuemin="0" aria-valuemax="20" aria-valuenow="9"><span style="width: 45%"></span></div>
+</div>
+</div>
+<main style="padding: 16px; display: flex; flex-direction: column; gap: 16px">
+<div role="tablist" aria-label="Μορφές υλικού" class="tabs">
+<button class="tab" role="tab" aria-selected="false" type="button">Σύνοψη<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+<button class="tab" role="tab" aria-selected="false" type="button">Απλή εξήγηση</button>
+<button class="tab" role="tab" aria-selected="true" type="button">Quiz<svg class="ico" viewBox="0 0 24 24" aria-label="έτοιμο" role="img"><path d="M20 6 9 17l-5-5"></path></svg></button>
+<button class="tab" role="tab" aria-selected="false" type="button">Σωστό / Λάθος</button>
+<button class="tab" role="tab" aria-selected="false" type="button">Κάρτες</button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<h2 style="font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em">Quiz: Ιδιοτιμές και διαγωνοποίηση</h2>
+<p class="muted" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Grammiki_Algevra_Dialexi_05_Idiotimes.pdf · 38 σελ.</p>
+<div style="display: flex; gap: 4px; flex-wrap: wrap">
+<button class="btn btn-sm btn-outline" type="button"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5"></path><path d="M12 15V3"></path></svg>Λήψη PDF</button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Αναδημιουργία" style="width: 40px; height: 40px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg></button>
+<button class="btn btn-sm btn-icon" type="button" aria-label="Αφαίρεση" style="width: 40px; height: 40px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+</div>
+</div>
+<article class="card q">
+<div class="qh">
+<span style="font-weight: 600; color: var(--muted-foreground)">9.</span>
+<span class="badge" style="margin-left: auto">Εύκολη</span>
+<p class="qt">Ένας πίνακας <span class="m"><i>A</i></span> 3 × 3 έχει ιδιοτιμές 1, 2 και 0. Ποιο ισχύει;</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<button class="opt bad" type="button" aria-disabled="true" style="flex-wrap: wrap"><span class="let">Α</span><span class="txt">Ο <span class="m"><i>A</i></span> αντιστρέφεται</span><span class="tag"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg>Η απάντησή σας</span></button>
+<button class="opt ok" type="button" aria-disabled="true"><span class="let">Β</span><span class="txt"><span class="m">det(<i>A</i>) = 0</span></span><span class="tag"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Σωστή</span></button>
+<button class="opt dim" type="button" disabled=""><span class="let">Γ</span><span class="txt"><span class="m">tr(<i>A</i>) = 0</span></span></button>
+<button class="opt dim" type="button" disabled=""><span class="let">Δ</span><span class="txt">Δεν διαγωνοποιείται</span></button>
+</div>
+<div class="expl">
+<p>Ένας πίνακας αντιστρέφεται μόνο αν καμία ιδιοτιμή του δεν είναι 0.</p>
+<p><b>Σωστή απάντηση (Β):</b> <span class="m">det(<i>A</i>) = 1 · 2 · 0 = 0</span>.</p>
+</div>
+</article>
+</main>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column">
+<p class="cap">Dark · Ιστορικό, με τη χρήση στο κάτω μέρος</p>
+<div class="sb" data-theme="dark" style="width: 360px; height: 760px">
+<aside class="sheet" role="dialog" aria-modal="true" aria-label="Ιστορικό" style="width: 100%; border-left: 0; box-shadow: none">
+<div style="display: flex; align-items: flex-start; gap: 8px; padding: 12px 12px 12px 16px">
+<div style="flex: 1; display: flex; flex-direction: column; gap: 2px; padding-top: 4px">
+<h2 style="font-size: 16px; line-height: 24px; font-weight: 600">Ιστορικό</h2>
+<p class="muted" style="font-size: 12px; line-height: 16px">Αποθηκεύεται μόνο σε αυτόν τον browser.</p>
+</div>
+<button class="btn btn-icon" type="button" aria-label="Κλείσιμο" style="width: 40px; height: 40px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+</div>
+<div class="sep"></div>
+<nav aria-label="Μελέτες" style="flex: 1; overflow-y: auto; padding: 0 8px 12px">
+<p class="grp">Σήμερα</p>
+<div class="hrow active"><button class="btn" type="button" aria-current="true" style="all: unset; flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; cursor: pointer"><span style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Grammiki_Algevra_Dialexi_05_Idiotimes.pdf</span><span class="muted" style="font-size: 12px; line-height: 16px">Σύνοψη · Quiz · Κάρτες</span></button><button class="btn btn-icon muted" type="button" aria-label="Διαγραφή μελέτης" style="width: 40px; height: 40px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><path d="M10 11v6M14 11v6"></path></svg></button></div>
+<div class="hrow"><button class="btn" type="button" style="all: unset; flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; cursor: pointer"><span style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Pithanotites_Dialexi_03_Desmevmeni_Pithanotita.pdf</span><span class="muted" style="font-size: 12px; line-height: 16px">Απλή εξήγηση · Σωστό / Λάθος</span></button><button class="btn btn-icon muted" type="button" aria-label="Διαγραφή μελέτης" style="width: 40px; height: 40px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><path d="M10 11v6M14 11v6"></path></svg></button></div>
+<p class="grp">Χθες</p>
+<div class="hrow"><button class="btn" type="button" style="all: unset; flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; cursor: pointer"><span style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Grammiki_Algevra_Dialexi_04_Orizouses.pdf</span><span class="muted" style="font-size: 12px; line-height: 16px">Σύνοψη · Quiz</span></button><button class="btn btn-icon muted" type="button" aria-label="Διαγραφή μελέτης" style="width: 40px; height: 40px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><path d="M10 11v6M14 11v6"></path></svg></button></div>
+<p class="grp">Αυτή την εβδομάδα</p>
+<div class="hrow"><button class="btn" type="button" style="all: unset; flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; cursor: pointer"><span style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Analysi_II_Seires_Taylor_kai_Maclaurin.pdf</span><span class="muted" style="font-size: 12px; line-height: 16px">Σύνοψη · Απλή εξήγηση · Quiz</span></button><button class="btn btn-icon muted" type="button" aria-label="Διαγραφή μελέτης" style="width: 40px; height: 40px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><path d="M10 11v6M14 11v6"></path></svg></button></div>
+</nav>
+<div class="sep"></div>
+<div style="padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 4px">
+<p style="font-size: 12px; line-height: 16px; font-weight: 500; font-variant-numeric: tabular-nums">17/250 Req · 104k/250k Tokens</p>
+<p class="muted" style="font-size: 12px; line-height: 16px">Σημερινή χρήση σε σχέση με τα ημερήσια όρια του Gemini. Μηδενίζει κάθε μέρα.</p>
+</div>
+</aside>
+</div>
+</div>
+
+
+</div>
+</section>
+<section id="ab-Print" class="abd"><h2 class="abt">10 · Πρότυπο εκτύπωσης PDF (A4)</h2>
+
+<div class="pboard">
+
+<div>
+<p class="cap">Quiz · πάντα με λύσεις</p>
+<div class="page">
+<div class="ph"><span class="b">StudyBox</span><span class="r"><strong>Quiz</strong><br>Grammiki_Algevra_Dialexi_05_Idiotimes.pdf<br>31/10/2026</span></div>
+<div><h1 class="pt">Quiz: Ιδιοτιμές και διαγωνοποίηση</h1><p class="pmeta">20 ερωτήσεις · η σωστή επιλογή είναι σημειωμένη με ✓ και ακολουθεί η εξήγησή της</p></div>
+<div class="item">
+<div class="qrow"><span class="n">1.</span><p class="q">Ποια σχέση ορίζει την ιδιοτιμή <span class="m"><i>λ</i></span> ενός πίνακα <span class="m"><i>A</i></span>;</p><span class="diff">Εύκολη</span></div>
+<div class="opts"><div class="o c"><span class="l">Α</span><span class="m"><i>A</i><b>v</b> = <i>λ</i><b>v</b>, <b>v</b> ≠ <b>0</b></span><span class="mk">✓ Σωστή</span></div><div class="o"><span class="l">Β</span><span class="m"><i>A</i><b>v</b> = <b>v</b> + <i>λ</i></span></div><div class="o"><span class="l">Γ</span><span class="m">det(<i>A</i>) = <i>λ</i></span></div><div class="o"><span class="l">Δ</span><span class="m"><i>A</i> = <i>λI</i></span></div></div>
+<p class="ex">Ιδιοτιμή είναι ο αριθμός για τον οποίο ο <span class="m"><i>A</i></span> απεικονίζει ένα μη μηδενικό διάνυσμα σε πολλαπλάσιό του.</p>
+</div>
+<div class="item">
+<div class="qrow"><span class="n">2.</span><p class="q">Ποιες είναι οι ιδιοτιμές του <span class="m"><i>A</i> = <span class="mat"><span style="grid-template-columns: repeat(2, auto)"><span>4</span><span>1</span><span>2</span><span>3</span></span></span></span>;</p><span class="diff">Μέτρια</span></div>
+<div class="opts"><div class="o"><span class="l">Α</span><span class="m">1 και 6</span></div><div class="o c"><span class="l">Β</span><span class="m">2 και 5</span><span class="mk">✓ Σωστή</span></div><div class="o"><span class="l">Γ</span><span class="m">3 και 4</span></div><div class="o"><span class="l">Δ</span><span class="m">−2 και −5</span></div></div>
+<p class="ex">Ίχνος 7 και ορίζουσα 10, άρα ρίζες της <span class="m"><i>λ</i><sup>2</sup> − 7<i>λ</i> + 10 = 0</span>, δηλαδή 2 και 5.</p>
+</div>
+<div class="item">
+<div class="qrow"><span class="n">3.</span><p class="q">Ένας πίνακας 3 × 3 έχει ιδιοτιμές 1, 2 και 0. Ποιο ισχύει;</p><span class="diff">Εύκολη</span></div>
+<div class="opts"><div class="o"><span class="l">Α</span>Ο πίνακας είναι αντιστρέψιμος</div><div class="o c"><span class="l">Β</span><span class="m">det(<i>A</i>) = 0</span><span class="mk">✓ Σωστή</span></div><div class="o"><span class="l">Γ</span><span class="m">tr(<i>A</i>) = 0</span></div><div class="o"><span class="l">Δ</span>Δεν είναι διαγωνοποιήσιμος</div></div>
+<p class="ex">Η ορίζουσα ισούται με το γινόμενο των ιδιοτιμών: <span class="m">1 · 2 · 0 = 0</span>.</p>
+</div>
+<div class="item">
+<div class="qrow"><span class="n">4.</span><p class="q">Είναι διαγωνοποιήσιμος ο <span class="m"><i>B</i> = <span class="mat"><span style="grid-template-columns: repeat(2, auto)"><span>1</span><span>1</span><span>0</span><span>1</span></span></span></span>;</p><span class="diff">Δύσκολη</span></div>
+<div class="opts"><div class="o"><span class="l">Α</span>Ναι, γιατί οι ιδιοτιμές του είναι πραγματικές</div><div class="o"><span class="l">Β</span>Ναι, γιατί είναι άνω τριγωνικός</div><div class="o c"><span class="l">Γ</span>Όχι, ο ιδιόχωρος της <span class="m">&nbsp;<i>λ</i> = 1</span>&nbsp;έχει διάσταση 1<span class="mk">✓ Σωστή</span></div><div class="o"><span class="l">Δ</span>Όχι, γιατί <span class="m">&nbsp;det(<i>B</i>) = 0</span></div></div>
+<p class="ex">Η <span class="m"><i>λ</i> = 1</span> έχει αλγεβρική πολλαπλότητα 2 αλλά μόνο ένα ανεξάρτητο ιδιοδιάνυσμα, οπότε δεν υπάρχουν 2 ανεξάρτητα ιδιοδιανύσματα.</p>
+</div>
+<div class="foot"><span>StudyBox · Quiz</span><span>1 / 5</span></div>
+</div>
+</div>
+
+<div>
+<p class="cap">Σωστό / Λάθος</p>
+<div class="page">
+<div class="ph"><span class="b">StudyBox</span><span class="r"><strong>Σωστό / Λάθος</strong><br>Grammiki_Algevra_Dialexi_05_Idiotimes.pdf<br>31/10/2026</span></div>
+<div><h1 class="pt">Σωστό ή Λάθος: Ιδιοτιμές και ιδιοδιανύσματα</h1><p class="pmeta">20 δηλώσεις · με απάντηση και εξήγηση</p></div>
+
+<div class="item">
+<div class="qrow"><span class="n">1.</span><p class="q">Ένα ιδιοδιάνυσμα μπορεί να είναι το μηδενικό διάνυσμα.</p><span class="diff">Εύκολη</span></div>
+<p style="padding-left: 20px; font-weight: 600">Απάντηση: Λάθος</p>
+<p class="ex">Εξ ορισμού το ιδιοδιάνυσμα είναι μη μηδενικό. Η ιδιοτιμή όμως μπορεί να είναι 0.</p>
+</div>
+
+<div class="item">
+<div class="qrow"><span class="n">2.</span><p class="q">Ο A είναι αντιστρέψιμος αν και μόνο αν το 0 δεν είναι ιδιοτιμή του.</p><span class="diff">Εύκολη</span></div>
+<p style="padding-left: 20px; font-weight: 600">Απάντηση: Σωστό</p>
+<p class="ex">Το 0 είναι ιδιοτιμή ακριβώς όταν det(A) = 0, δηλαδή όταν ο A δεν αντιστρέφεται.</p>
+</div>
+
+<div class="item">
+<div class="qrow"><span class="n">3.</span><p class="q">Ένας πίνακας και ο ανάστροφός του έχουν τις ίδιες ιδιοτιμές.</p><span class="diff">Μέτρια</span></div>
+<p style="padding-left: 20px; font-weight: 600">Απάντηση: Σωστό</p>
+<p class="ex">Ισχύει det(Aᵀ − λI) = det(A − λI), άρα έχουν το ίδιο χαρακτηριστικό πολυώνυμο.</p>
+</div>
+
+<div class="item">
+<div class="qrow"><span class="n">4.</span><p class="q">Οι ιδιοτιμές ενός άνω τριγωνικού πίνακα είναι τα διαγώνια στοιχεία του.</p><span class="diff">Μέτρια</span></div>
+<p style="padding-left: 20px; font-weight: 600">Απάντηση: Σωστό</p>
+<p class="ex">Η ορίζουσα του A − λI είναι το γινόμενο των διαγώνιων στοιχείων (aᵢᵢ − λ).</p>
+</div>
+
+<div class="item">
+<div class="qrow"><span class="n">5.</span><p class="q">Κάθε τετραγωνικός πίνακας με πραγματικά στοιχεία έχει πραγματικές ιδιοτιμές.</p><span class="diff">Εύκολη</span></div>
+<p style="padding-left: 20px; font-weight: 600">Απάντηση: Λάθος</p>
+<p class="ex">Ο πίνακας στροφής κατά 90° έχει χαρακτηριστικό πολυώνυμο λ² + 1, με ιδιοτιμές ±i.</p>
+</div>
+
+<div class="item">
+<div class="qrow"><span class="n">6.</span><p class="q">Αν λ είναι ιδιοτιμή του αντιστρέψιμου A, τότε 1/λ είναι ιδιοτιμή του A⁻¹.</p><span class="diff">Μέτρια</span></div>
+<p style="padding-left: 20px; font-weight: 600">Απάντηση: Σωστό</p>
+<p class="ex">Από Av = λv, πολλαπλασιάζοντας με A⁻¹ προκύπτει A⁻¹v = (1/λ)v.</p>
+</div>
+
+<div class="foot"><span>StudyBox · Σωστό / Λάθος</span><span>1 / 4</span></div>
+</div>
+</div>
+
+<div>
+<p class="cap">Κάρτες</p>
+<div class="page">
+<div class="ph"><span class="b">StudyBox</span><span class="r"><strong>Κάρτες</strong><br>Grammiki_Algevra_Dialexi_05_Idiotimes.pdf<br>31/10/2026</span></div>
+<div><h1 class="pt">Κάρτες: Ιδιοτιμές</h1><p class="pmeta">20 κάρτες · μπροστινή και πίσω όψη</p></div>
+
+
+
+
+
+
+
+
+
+
+<table class="cards">
+<thead><tr><th>#</th><th>Μπροστινή όψη</th><th>Πίσω όψη</th></tr></thead>
+<tbody>
+<tr><td class="n"></td><td class="f"></td><td></td></tr>
+
+</tbody>
+</table>
+<div class="foot"><span>StudyBox · Κάρτες</span><span>1 / 2</span></div>
+</div>
+</div>
+
+</div>
+</section>
+<section id="ab-Tokens" class="abd"><h2 class="abt">Tokens · globals.css</h2>
+
+<div class="tb">
+<div style="flex: 1 1 640px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+<h2 style="font-size: 20px; line-height: 28px; font-weight: 600">app/globals.css</h2>
+<p style="color: #71717a">Tailwind v4 + shadcn/ui, θέμα Zinc. Το dark variant δένεται στο <code>data-theme</code> του &lt;html&gt;.</p>
+<pre>@import "tailwindcss";
+
+/* dark: ενεργό όταν &lt;html data-theme="dark"&gt; */
+@custom-variant dark (&amp;:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root {
+  --radius: 0.5rem;              /* 8px κάρτες */
+
+  --background: #ffffff;
+  --foreground: #09090b;
+  --card: #ffffff;
+  --card-foreground: #09090b;
+  --popover: #ffffff;
+  --popover-foreground: #09090b;
+  --primary: #18181b;
+  --primary-foreground: #fafafa;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --accent: #f4f4f5;
+  --accent-foreground: #18181b;
+  --destructive: #dc2626;
+  --destructive-foreground: #fafafa;
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: #a1a1aa;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --background: #09090b;
+  --foreground: #fafafa;
+  --card: #09090b;
+  --card-foreground: #fafafa;
+  --popover: #09090b;
+  --popover-foreground: #fafafa;
+  --primary: #fafafa;
+  --primary-foreground: #18181b;
+  --secondary: #27272a;
+  --secondary-foreground: #fafafa;
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+  --accent: #27272a;
+  --accent-foreground: #fafafa;
+  --destructive: #ef4444;
+  --destructive-foreground: #fafafa;
+  --border: #27272a;
+  --input: #27272a;
+  --ring: #52525b;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: 4px;
+  --radius-md: 6px;              /* κουμπιά, inputs */
+  --radius-lg: var(--radius);    /* κάρτες, Sheet */
+
+  --text-xs: 12px;   --text-xs--line-height: 16px;
+  --text-sm: 14px;   --text-sm--line-height: 20px;
+  --text-base: 16px; --text-base--line-height: 28px;  /* κείμενο ανάγνωσης */
+  --text-xl: 20px;   --text-xl--line-height: 28px;
+  --text-3xl: 30px;  --text-3xl--line-height: 36px;
+}
+
+@layer base {
+  * { border-color: var(--border); }
+  html { background: var(--background); }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 20px;
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+/* Καμία κίνηση: ούτε transitions, ούτε animations
+   (καλύπτει και τα προεπιλεγμένα των Sheet / Tabs). */
+*, *::before, *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+
+/* KaTeX: αριστερή στοίχιση, οριζόντια κύλιση στο δικό του πλαίσιο */
+.katex-display { margin: 0; text-align: left; overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+.katex-display &gt; .katex { text-align: left; }
+.katex { color: inherit; font-size: 1.1em; }
+
+/* Εκτύπωση: ερωτήσεις και κάρτες δεν κόβονται */
+@media print {
+  .print-item { break-inside: avoid; page-break-inside: avoid; }
+}</pre>
+</div>
+<div style="flex: 0 0 480px; display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<h2 style="font-size: 20px; line-height: 28px; font-weight: 600">Χρώματα</h2>
+<div class="sw">
+<div class="h">Token</div><div class="h">Light</div><div class="h">Dark</div>
+
+<div style="font-weight: 500">background / card</div>
+<div><span class="chip" style="background: #ffffff"></span>#ffffff</div>
+<div><span class="chip" style="background: #09090b"></span>#09090b</div>
+
+<div style="font-weight: 500">foreground</div>
+<div><span class="chip" style="background: #09090b"></span>#09090b</div>
+<div><span class="chip" style="background: #fafafa"></span>#fafafa</div>
+
+<div style="font-weight: 500">primary</div>
+<div><span class="chip" style="background: #18181b"></span>#18181b</div>
+<div><span class="chip" style="background: #fafafa"></span>#fafafa</div>
+
+<div style="font-weight: 500">primary-foreground</div>
+<div><span class="chip" style="background: #fafafa"></span>#fafafa</div>
+<div><span class="chip" style="background: #18181b"></span>#18181b</div>
+
+<div style="font-weight: 500">muted / secondary / accent</div>
+<div><span class="chip" style="background: #f4f4f5"></span>#f4f4f5</div>
+<div><span class="chip" style="background: #27272a"></span>#27272a</div>
+
+<div style="font-weight: 500">muted-foreground</div>
+<div><span class="chip" style="background: #71717a"></span>#71717a</div>
+<div><span class="chip" style="background: #a1a1aa"></span>#a1a1aa</div>
+
+<div style="font-weight: 500">border / input</div>
+<div><span class="chip" style="background: #e4e4e7"></span>#e4e4e7</div>
+<div><span class="chip" style="background: #27272a"></span>#27272a</div>
+
+<div style="font-weight: 500">ring</div>
+<div><span class="chip" style="background: #a1a1aa"></span>#a1a1aa</div>
+<div><span class="chip" style="background: #52525b"></span>#52525b</div>
+
+<div style="font-weight: 500">destructive</div>
+<div><span class="chip" style="background: #dc2626"></span>#dc2626</div>
+<div><span class="chip" style="background: #ef4444"></span>#ef4444</div>
+
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 12px">
+<h2 style="font-size: 20px; line-height: 28px; font-weight: 600">Τυπογραφία</h2>
+<div style="display: flex; flex-direction: column; gap: 8px; border: 1px solid #e4e4e7; border-radius: 8px; padding: 16px">
+<p style="font-size: 30px; line-height: 36px; font-weight: 600; letter-spacing: -0.02em">30 / 600 Τίτλος σελίδας</p>
+<p style="font-size: 20px; line-height: 28px; font-weight: 600">20 / 600 Τίτλος υλικού</p>
+<p style="font-size: 16px; line-height: 28px">16 / 400 Κείμενο ανάγνωσης, άνετο ύψος γραμμής</p>
+<p style="font-size: 14px; line-height: 20px; font-weight: 500">14 / 500 Κουμπιά, ετικέτες</p>
+<p style="font-size: 14px; line-height: 20px">14 / 400 Βασικό κείμενο</p>
+<p style="font-size: 12px; line-height: 16px; color: #71717a; font-variant-numeric: tabular-nums">12 / 400 muted · 12/250 Req · 34k/250k Tokens</p>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 12px">
+<h2 style="font-size: 20px; line-height: 28px; font-weight: 600">app/layout.tsx</h2>
+<pre>import { Inter } from "next/font/google";
+import "katex/dist/katex.min.css";
+import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin", "greek"],
+  weight: ["400", "500", "600"],
+  variable: "--font-inter",
+});
+
+// Εφαρμόζει το θέμα πριν από την πρώτη απόδοση
+const themeScript = `try{var t=localStorage.getItem("theme");
+if(t!=="dark"&amp;&amp;t!=="light")t=matchMedia("(prefers-color-scheme: dark)")
+.matches?"dark":"light";document.documentElement.dataset.theme=t}catch(e){}`;
+
+export default function RootLayout({ children }) {
+  return (
+    &lt;html lang="el" className={inter.variable}
+      data-theme="light" suppressHydrationWarning&gt;
+      &lt;head&gt;
+        &lt;script dangerouslySetInnerHTML={ { __html: themeScript } } /&gt;
+      &lt;/head&gt;
+      &lt;body&gt;{children}&lt;/body&gt;
+    &lt;/html&gt;
+  );
+}</pre>
+</div>
+</div>
+</div>
+</section>
+</body></html>

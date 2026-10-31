@@ -1,4 +1,4 @@
-# StudyBox
+# StudyArc
 
 Ανέβασε ένα PDF διάλεξης (στα ελληνικά) και πάρε **σύνοψη**, **απλή εξήγηση** και **quiz** — όλα στα ελληνικά. Week-1 MVP, εστιασμένο στην ποιότητα του pipeline.
 
@@ -58,5 +58,5 @@ samples/              your PDFs (git-ignored)
 ## Notes
 
 - **Free tier:** ~15 req/min, ~1,500 req/day on `gemini-2.5-flash`. During Google demand spikes you may see transient `503`s — the retry layer absorbs them.
-- **UI:** the StudyBox design is applied — navy/paper palette over a grid background, IBM Plex Sans (Greek) + Manrope (Latin display), and a light/dark theme toggle (persisted in `localStorage`).
+- **UI:** shadcn/ui with the Zinc theme, Inter (Greek + Latin), no motion, and a light/dark toggle (persisted in `localStorage`). The design source is `docs/design/studybox-redesign.html`.
 - No database or auth yet: results cache in-memory (server) and persist to `localStorage` (client).
