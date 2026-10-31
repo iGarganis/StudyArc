@@ -5,7 +5,7 @@ import { CircleAlert, Download, File as FileIcon, FileText, Upload } from "lucid
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { SAMPLE_FILE_NAME, humanSize } from "@/lib/study";
+import { humanSize } from "@/lib/study";
 import { cn } from "@/lib/utils";
 import type { UiError } from "@/lib/uiErrors";
 
@@ -105,9 +105,7 @@ export function UploadArea({
             {dragging ? DROP_HINT : studyName}
           </span>
           <span className="text-xs text-muted-foreground">
-            {studyName === SAMPLE_FILE_NAME
-              ? "This is a sample study. Upload your own PDF to generate material."
-              : "To generate more, upload the PDF again or drag it here."}
+            To generate more, upload the PDF again or drag it here.
           </span>
         </span>
         <Button

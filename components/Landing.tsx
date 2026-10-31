@@ -20,21 +20,6 @@ export function LandingIntro() {
   );
 }
 
-export function SampleLink({ onOpen }: { onOpen: () => void }) {
-  return (
-    <p className="-mt-2 text-muted-foreground sm:-mt-4">
-      No PDF at hand?{" "}
-      <button
-        type="button"
-        onClick={onOpen}
-        className="cursor-pointer rounded-sm font-medium text-foreground underline underline-offset-4 max-sm:inline-block max-sm:py-2.5"
-      >
-        Open a sample lecture
-      </button>
-    </p>
-  );
-}
-
 export function LandingFeatures() {
   return (
     <section className="flex flex-col gap-1 sm:gap-2">

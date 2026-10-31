@@ -52,9 +52,6 @@ export type Usage = { date: string; requests: number; tokens: number };
 // resets at local midnight, while the real quota resets at midnight Pacific time.
 export const REQUEST_LIMIT = 20;
 
-/** The ready-made study's file name, which is how the UI recognises it. */
-export const SAMPLE_FILE_NAME = "Eigenvalues_Sample_Lecture.pdf";
-
 export const USAGE_HINT =
   "Today's usage in this browser, against Gemini's daily request limit. Resets every day.";
 

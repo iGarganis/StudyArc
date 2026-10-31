@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { Mode } from "@/lib/ai/types";
 import { AppHeader } from "@/components/AppHeader";
 import { HistorySheet } from "@/components/HistorySheet";
-import { LandingFeatures, LandingIntro, SampleLink } from "@/components/Landing";
+import { LandingFeatures, LandingIntro } from "@/components/Landing";
 import { ModeTabs } from "@/components/ModeTabs";
 import { UploadArea } from "@/components/UploadArea";
 import {
@@ -19,7 +19,6 @@ import {
 import {
   GENERIC_ERROR,
   NOT_PDF_ERROR,
-  SAMPLE_ERROR,
   errorFromApi,
   type UiError,
 } from "@/lib/uiErrors";
@@ -267,18 +266,6 @@ export default function Home() {
     setSelectedTab(null);
   };
 
-  // Open the ready-made study. It stays out of the history: nothing was generated.
-  const openSample = async () => {
-    try {
-      const { sampleStudy } = await import("@/lib/sampleStudy");
-      setStudy(sampleStudy, null);
-      setError(null);
-      setSelectedTab(null);
-    } catch {
-      setError(SAMPLE_ERROR);
-    }
-  };
-
   const generate = async (mode: Mode) => {
     if (!file || loadingMode) return;
     const generation = ++generationRef.current;
@@ -363,10 +350,7 @@ export default function Home() {
           />
 
           {isLanding ? (
-            <>
-              <SampleLink onOpen={openSample} />
-              <LandingFeatures />
-            </>
+            <LandingFeatures />
           ) : (
             <ModeTabs
               panels={panels}
