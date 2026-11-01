@@ -1,99 +1,66 @@
 # StudyArc
 
-Turn a lecture PDF into study material. Upload a PDF and StudyArc uses Google Gemini to generate a summary, a simple explanation, a quiz, a true/false set and flashcards, all in the language of the document and with math rendered properly.
+Upload a lecture PDF and get a summary, a plain-language explanation, a quiz, true/false questions and flashcards. The output follows the language of the PDF, so Greek notes give you Greek material, and formulas are rendered with KaTeX.
 
-![The summary view, with formulas rendered by KaTeX](docs/screenshots/summary.png)
-
-## Features
-
-- **Five study formats:** summary with key formulas and exam tips, simple explanation with analogies, 20-question quiz, 20 true/false statements, and 20 flashcards with repeat rounds for the cards you missed.
-- **Follows the document's language:** a Greek lecture produces Greek material and an English lecture produces English material. The interface is in English.
-- **Math that renders:** formulas are LaTeX, rendered with KaTeX in every view.
-- **PDF export:** any format can be printed or saved as a clean A4 document, and quizzes always include the answer key.
-- **History without an account:** past studies stay in your browser's `localStorage`.
-- **Light and dark themes,** and a layout that works down to 360px.
+![Summary view](docs/screenshots/summary.png)
 
 | Quiz | Flashcards | Mobile |
 |---|---|---|
-| ![Quiz with a correct and a wrong answer, in the dark theme](docs/screenshots/quiz-dark.png) | ![The answer side of a flashcard](docs/screenshots/flashcards.png) | ![The quiz on a phone](docs/screenshots/mobile.png) |
+| ![Quiz in the dark theme](docs/screenshots/quiz-dark.png) | ![Flashcard](docs/screenshots/flashcards.png) | ![Quiz on a phone](docs/screenshots/mobile.png) |
 
-## How it works
+Quizzes and true/false sets have 20 items each, with an explanation for every answer. Flashcards let you repeat only the ones you missed. Anything can be exported as an A4 PDF, and past studies stay in your browser's local storage, so there are no accounts.
 
-```
-PDF → text (unpdf) → Gemini in JSON mode → validated, typed material → KaTeX-rendered UI
-```
+## Stack
 
-The interesting part is what sits around the model call, because model output and free-tier APIs are both unreliable:
+Next.js 15, React 19, TypeScript, Tailwind 4 and shadcn/ui. PDFs are parsed with `unpdf`, the material comes from Gemini (`gemini-2.5-flash`) in JSON mode, and generated results are cached in Supabase.
 
-- **Provider-agnostic core.** `GeminiProvider` is the only file that imports the SDK. Another backend can be added by implementing one interface, with no changes for callers.
-- **Resilience.** Requests go through a serializing queue, with exponential backoff and jitter on transient 5xx and 429 errors. Per-minute limits are retried, while the daily limit is reported to the user straight away.
-- **Two-level cache.** Results are cached in memory and in a Supabase Postgres table, so they survive restarts and serverless cold starts. The key is a SHA-256 of the document text, format, model and prompt: anyone uploading the same text gets the material instantly with no API request, and improving a prompt never serves stale results. The interface shows which level answered. PDFs, their text and users' answers are never stored. If the database is slow or down, requests simply continue to Gemini.
-- **Long documents.** Lectures of up to about 120 pages go to the model in one call for the best quality. Anything longer is split into chunks and the results are merged.
-- **Validation and repair.** Every response is checked and converted to typed data. The validator also repairs mistakes seen in real model output: over-escaped LaTeX and math delimiters that the UI can't render.
-- **Coverage across formats.** The quiz, true/false and flashcard prompts are told what the other formats already cover, so they test different concepts where the document allows it.
+## Things that needed some thought
 
-## Tech stack
+**A small quota.** The free Gemini tier gave me 20 requests a day for this model, and a full study uses 5. Results are cached in memory and in a Postgres table, keyed on a hash of the document text, format, model and prompt. Uploading the same text again costs nothing, and changing a prompt doesn't serve old results. Only the generated material is stored, never the PDF, its text or anyone's answers. If the database is down or slow (free Supabase projects pause when idle), requests just go to Gemini after a 2.5 second timeout.
 
-Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS 4, shadcn/ui, KaTeX, `unpdf`, `@google/genai` and Supabase (Postgres).
+**Unreliable model output.** Testing with real responses showed that Gemini sometimes wraps math in `\(...\)` instead of `$...$`, and sometimes escapes LaTeX twice. Both show up as raw text on the page, so `lib/ai/validate.ts` repairs them before anything reaches the UI.
 
-## Run it locally
+**Rate limit errors.** Every 429 from Gemini mentions "plan and billing details", including the per-minute ones, so that phrase can't be used to detect the daily limit. Per-minute limits are retried with backoff and the daily limit is reported right away.
 
-You need Node.js and a free [Gemini API key](https://aistudio.google.com/apikey).
+**Long documents.** Up to about 400k characters goes to the model in one call. Longer documents are split into chunks and the results merged.
+
+The Gemini SDK is only imported in `lib/ai/gemini.ts`, so another provider would mean implementing one interface.
+
+## Running it
+
+You need Node.js and a [Gemini API key](https://aistudio.google.com/apikey).
 
 ```bash
 npm install
-cp .env.local.example .env.local     # then add your GEMINI_API_KEY
-npm run dev                          # http://localhost:3000
+cp .env.local.example .env.local   # add GEMINI_API_KEY
+npm run dev
 ```
 
-The default model is `gemini-2.5-flash`. Set `GEMINI_MODEL` to use another one.
+Check your own limit at [ai.dev/rate-limit](https://ai.dev/rate-limit). If it isn't 20, change `REQUEST_LIMIT` in `lib/study.ts` so the counter in the top bar matches.
 
-On the free tier the API reported a limit of 20 requests per day for this model in October 2026, and a full study uses 5 of them. You can check your own limit in [AI Studio](https://ai.dev/rate-limit). If it differs, update `REQUEST_LIMIT` in `lib/study.ts` so the counter in the top bar matches.
-
-### Optional: the database cache
-
-The app runs without a database, using the in-memory cache only. To add one, create a Supabase project, run `supabase/schema.sql` in its SQL Editor, and add these to `.env.local`:
+The database is optional. Without it, the cache only lives in memory. To use it, run `supabase/schema.sql` in a Supabase project and add these to `.env.local`:
 
 ```bash
 SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SECRET_KEY=sb_secret_...     # server only, never expose it to the browser
+SUPABASE_SECRET_KEY=sb_secret_...
 ```
 
-Row level security is on with no policies, so only the server's secret key can reach the table. Free Supabase projects pause after a period of inactivity; while paused, the app keeps working and just generates material as usual.
+The secret key stays on the server. Row level security is on with no policies, so the public keys can't reach the table.
 
 ## Tests
 
-These run offline, with no API key:
+These run offline and don't need a key:
 
 ```bash
-node scripts/verify-extract.mjs   # PDF text extraction and its error cases
+node scripts/verify-extract.mjs   # PDF extraction and its error cases
 node scripts/verify-parse.mjs     # validators and LaTeX repair
-node scripts/verify-step4.mjs     # queue, both caches, chunking and error classification
+node scripts/verify-step4.mjs     # queue, caches, chunking, error classification
 ```
 
-To try the prompts on your own material without the UI (this uses your API quota):
+To try the prompts without the UI (this uses your quota):
 
 ```bash
-npm run test:pipeline -- samples/your-lecture.pdf summary   # or eli5, quiz, truefalse, flashcards
+npm run test:pipeline -- samples/your-lecture.pdf summary
 ```
 
-`.txt` and `.md` files work too. The `samples/` folder is git-ignored.
-
-## Project layout
-
-```
-app/page.tsx            page state and data flow
-app/api/generate/       upload → extract → generate route
-components/             the interface; components/ui/ holds the shadcn/ui parts
-lib/pdf.ts              PDF → text, with typed errors (empty, corrupt, scanned)
-lib/exportPdf.ts        print template for PDF export
-lib/cache.ts            cache interfaces, in-memory cache and key
-lib/supabaseCache.ts    durable cache; every failure counts as a miss
-supabase/schema.sql     the database table
-lib/ai/
-  generate.ts           orchestration: cache → de-duplication → queue → chunking → provider
-  gemini.ts             GeminiProvider, the only file importing the SDK
-  prompts.ts            system prompts for each format
-  validate.ts           JSON → typed material, including LaTeX repair
-  retry.ts, queue.ts, chunking.ts    resilience layer
-```
+`.txt` and `.md` files work too, and `samples/` is git-ignored.
