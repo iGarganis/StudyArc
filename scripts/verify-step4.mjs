@@ -130,20 +130,20 @@ const fakeRemote = () => {
   s = stub();
   const pD = { documentText: "doc-D", mode: "summary" };
   const first = await generateStudyMaterial(pD, { provider: s.provider, remoteCache: remote });
-  ok(!first.cached && first.usageTokens === 100 && remote.writes === 1, "first request generates and stores");
+  ok(first.source === "generated" && first.usageTokens === 100 && remote.writes === 1, "first request generates and stores");
   resetGenerationState(); // what a server restart does to the memory cache
   const second = await generateStudyMaterial(pD, { provider: s.provider, remoteCache: remote });
-  ok(second.cached && second.usageTokens === 0 && s.calls() === 1, "after a restart: served from the database", `calls=${s.calls()}`);
+  ok(second.source === "database" && second.usageTokens === 0 && s.calls() === 1, "after a restart: served from the database", `calls=${s.calls()}`);
   const readsBefore = remote.reads;
   const third = await generateStudyMaterial(pD, { provider: s.provider, remoteCache: remote });
-  ok(third.cached && remote.reads === readsBefore, "then served from memory, without a database read");
+  ok(third.source === "memory" && remote.reads === readsBefore, "then served from memory, without a database read");
 
   // Regenerate replaces the stored copy.
   const fresh = await generateStudyMaterial(pD, { provider: stub(() => sm("new")).provider, remoteCache: remote, refresh: true });
-  ok(!fresh.cached && fresh.material.title === "new", "refresh: skips the cached copy");
+  ok(fresh.source === "generated" && fresh.material.title === "new", "refresh: skips the cached copy");
   resetGenerationState();
   const after = await generateStudyMaterial(pD, { provider: s.provider, remoteCache: remote });
-  ok(after.cached && after.material.title === "new", "refresh: replaces the stored copy");
+  ok(after.source === "database" && after.material.title === "new", "refresh: replaces the stored copy");
 
   // The order formats were generated in must not split the cache.
   resetGenerationState();
@@ -151,14 +151,14 @@ const fakeRemote = () => {
   s = stub();
   await generateStudyMaterial({ documentText: "doc-E", mode: "quiz", covered: ["a"] }, { provider: s.provider, remoteCache: remote });
   const noCover = await generateStudyMaterial({ documentText: "doc-E", mode: "quiz" }, { provider: s.provider, remoteCache: remote });
-  ok(noCover.cached && s.calls() === 1, "covered concepts don't change the key");
+  ok(noCover.source === "memory" && s.calls() === 1, "covered concepts don't change the key");
 
   // Bad or failing storage must never break generation.
   resetGenerationState();
   s = stub();
   const wrong = { async get() { return el(); }, async set() {} };
   const r1 = await generateStudyMaterial({ documentText: "doc-F", mode: "summary" }, { provider: s.provider, remoteCache: wrong });
-  ok(!r1.cached && r1.material.mode === "summary", "a stored row of the wrong mode is ignored");
+  ok(r1.source === "generated" && r1.material.mode === "summary", "a stored row of the wrong mode is ignored");
 }
 {
   const makeClient = (fetchImpl) => createClient("https://example.supabase.co", "sb_secret_test", {
@@ -213,7 +213,7 @@ const fakeRemote = () => {
   console.error = () => {};
   const res = await generateStudyMaterial({ documentText: "doc-G", mode: "summary" }, { provider: s.provider, remoteCache: down });
   console.error = quiet;
-  ok(!res.cached && s.calls() === 1 && res.material.mode === "summary", "generation still works with the database down");
+  ok(res.source === "generated" && s.calls() === 1 && res.material.mode === "summary", "generation still works with the database down");
 }
 
 console.log("\n--- toAIProviderError quota classification ---");

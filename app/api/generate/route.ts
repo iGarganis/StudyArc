@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
 
   // 2) Generate study material (cache → queue → chunking → provider).
   try {
-    const { material, usageTokens, cached } = await generateStudyMaterial(
+    const { material, usageTokens, source } = await generateStudyMaterial(
       {
         documentText: extracted.text,
         mode,
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     );
     return NextResponse.json({
       material,
-      cached,
+      source,
       meta: {
         totalPages: extracted.totalPages,
         charCount: extracted.charCount,

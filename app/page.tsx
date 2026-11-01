@@ -294,7 +294,7 @@ export default function Home() {
         material: data.material,
         meta: data.meta,
         fileName: file.name,
-        fromCache: Boolean(data.cached),
+        source: data.source,
       };
       // Add (or refresh) this mode's panel, keeping the others in place,
       // and fold it into this document's single session.

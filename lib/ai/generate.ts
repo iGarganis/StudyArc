@@ -16,9 +16,11 @@ const defaultRemoteCache = createSupabaseCache();
 // In-flight requests, so two identical concurrent calls share one generation.
 const inFlight = new Map<string, Promise<GenerationOutcome>>();
 
+/** Where the material came from. Only "generated" costs a model call. */
+export type MaterialSource = "generated" | "memory" | "database";
+
 export interface GenerationOutcome extends GenerationResult {
-  /** True when no model call was made because the material already existed. */
-  cached: boolean;
+  source: MaterialSource;
 }
 
 export interface GenerateOptions {
@@ -70,7 +72,7 @@ export function generateStudyMaterial(
   const promise = (async (): Promise<GenerationOutcome> => {
     if (useCache && !options.refresh) {
       const hit = await findCached(key, params, remote);
-      if (hit) return { material: hit, usageTokens: 0, cached: true };
+      if (hit) return { material: hit.material, usageTokens: 0, source: hit.source };
     }
     const provider = options.provider ?? getProvider();
     const result = await generationQueue.run(() => produce(provider, params));
@@ -78,7 +80,7 @@ export function generateStudyMaterial(
       memoryCache.set(key, result.material);
       await remote?.set(key, result.material);
     }
-    return { ...result, cached: false };
+    return { ...result, source: "generated" };
   })();
 
   if (useCache) {
@@ -96,13 +98,13 @@ async function findCached(
   key: string,
   params: GenerateParams,
   remote: RemoteCache<GeneratedMaterial> | null,
-): Promise<GeneratedMaterial | undefined> {
+): Promise<{ material: GeneratedMaterial; source: MaterialSource } | undefined> {
   const inMemory = memoryCache.get(key);
-  if (inMemory) return inMemory;
+  if (inMemory) return { material: inMemory, source: "memory" };
   const stored = await remote?.get(key);
   if (stored?.mode !== params.mode) return undefined;
   memoryCache.set(key, stored);
-  return stored;
+  return { material: stored, source: "database" };
 }
 
 /** One document → one material, chunking + merging when the doc is huge. */

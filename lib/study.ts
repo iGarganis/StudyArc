@@ -36,8 +36,8 @@ export type Result = {
   material: GeneratedMaterial;
   meta: Meta;
   fileName: string;
-  /** The material already existed, so generating it used no Gemini request. */
-  fromCache?: boolean;
+  /** Where it came from. Anything but "generated" used no Gemini request. */
+  source?: "generated" | "memory" | "database";
 };
 /** The generated material of one study, at most one per mode. */
 export type Panels = Partial<Record<Mode, Result>>;

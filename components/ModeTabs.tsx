@@ -129,10 +129,12 @@ export function ModeTabs({
                     <h2 className="text-xl font-semibold tracking-[-0.01em]">
                       <MathText text={result.material.title} />
                     </h2>
-                    {result.fromCache && (
+                    {(result.source === "database" || result.source === "memory") && (
                       <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
                         <Database className="size-3.5 shrink-0" aria-hidden />
-                        Loaded from cache, no Gemini request used
+                        Loaded from{" "}
+                        {result.source === "database" ? "the database" : "server memory"}
+                        , no Gemini request used
                       </p>
                     )}
                     <p className="truncate text-muted-foreground">
