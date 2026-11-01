@@ -44,3 +44,6 @@ next-env.d.ts
 # local course PDFs — keep them off git, but keep the folder's README
 /samples/*
 !/samples/README.md
+
+# copied from node_modules by scripts/copy-pdfjs.mjs
+/public/vendor/

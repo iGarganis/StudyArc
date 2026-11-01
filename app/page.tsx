@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Mode } from "@/lib/ai/types";
+import { readPdfInBrowser } from "@/lib/browserPdf";
+import { MAX_PDF_BYTES, MAX_TEXT_BYTES } from "@/lib/limits";
 import { AppHeader } from "@/components/AppHeader";
 import { HistorySheet } from "@/components/HistorySheet";
 import { LandingFeatures, LandingIntro } from "@/components/Landing";
@@ -274,16 +276,29 @@ export default function Home() {
     setLoadingMode(mode);
     setSelectedTab(mode);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      fd.append("mode", mode);
-      // Tell the model what the other testing modes already cover, so it
-      // picks fresh concepts (unless the document has nothing left).
-      const covered = extractCovered(panelsRef.current, mode);
-      if (covered.length > 0) fd.append("covered", JSON.stringify(covered));
-      // Asking again for material you already have means you want a new version.
-      if (panelsRef.current[mode]) fd.append("regenerate", "1");
-      const res = await fetch("/api/generate", { method: "POST", body: fd });
+      if (file.size > MAX_PDF_BYTES) {
+        setError(errorFromApi("TOO_LARGE", undefined, file.size));
+        return;
+      }
+      const pdf = await readPdfInBrowser(file);
+      if (generation !== generationRef.current) return;
+      if (new TextEncoder().encode(pdf.text).length > MAX_TEXT_BYTES) {
+        setError(errorFromApi("TEXT_TOO_LARGE", undefined, file.size));
+        return;
+      }
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          mode,
+          text: pdf.text,
+          // Tell the model what the other testing modes already cover, so it
+          // picks fresh concepts (unless the document has nothing left).
+          covered: extractCovered(panelsRef.current, mode),
+          // Asking again for material you already have means you want a new version.
+          regenerate: Boolean(panelsRef.current[mode]),
+        }),
+      });
       // Responses from the hosting platform, not our route, aren't JSON.
       const data = await res.json().catch(() => null);
       if (generation !== generationRef.current) return;
@@ -298,7 +313,11 @@ export default function Home() {
       }
       const r: Result = {
         material: data.material,
-        meta: data.meta,
+        meta: {
+          totalPages: pdf.totalPages,
+          charCount: pdf.charCount,
+          title: pdf.meta.title ?? null,
+        },
         fileName: file.name,
         source: data.source,
       };
@@ -308,8 +327,12 @@ export default function Home() {
       const next: Panels = { ...panelsRef.current, [mode]: r };
       setStudy(next, id);
       upsertSession(id, file.name, next);
-    } catch {
-      if (generation === generationRef.current) setError(GENERIC_ERROR);
+    } catch (err) {
+      if (generation === generationRef.current) {
+        // PDF reading errors carry a code; anything else is unexpected.
+        const code = (err as { code?: string }).code;
+        setError(code ? errorFromApi(code, undefined, file.size) : GENERIC_ERROR);
+      }
     } finally {
       if (generation === generationRef.current) setLoadingMode(null);
     }

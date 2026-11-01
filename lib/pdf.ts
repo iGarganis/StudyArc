@@ -1,4 +1,5 @@
 import { extractText, getDocumentProxy, getMeta } from "unpdf";
+import { MIN_TEXT_CHARS } from "./limits.ts";
 
 export type PdfErrorCode = "EMPTY_FILE" | "CORRUPT_PDF" | "NO_TEXT";
 
@@ -25,9 +26,6 @@ export interface ExtractedPdf {
   charCount: number;
   meta: { title?: string; author?: string };
 }
-
-/** Below this many non-whitespace chars we treat the PDF as having no usable text. */
-const MIN_MEANINGFUL_CHARS = 40;
 
 /**
  * Extract plain text from a PDF buffer.
@@ -71,7 +69,7 @@ export async function extractPdfText(
 
   const text = normalizeText(rawText);
 
-  if (text.replace(/\s/g, "").length < MIN_MEANINGFUL_CHARS) {
+  if (text.replace(/\s/g, "").length < MIN_TEXT_CHARS) {
     throw new PdfExtractionError(
       "NO_TEXT",
       "No selectable text was found in this PDF. It is probably scanned (images of pages). " +

@@ -10,6 +10,10 @@ const projectRoot = dirname(fileURLToPath(import.meta.url));
 const nextConfig: NextConfig = {
   turbopack: {
     root: projectRoot,
+    // Turbopack can't parse this file, and it's loaded separately in the browser.
+    resolveAlias: {
+      "unpdf/pdfjs": "./lib/pdfjsNotBundled.ts",
+    },
   },
 };
 

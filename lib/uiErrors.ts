@@ -38,8 +38,8 @@ export function errorFromStatus(status: number): UiError {
       };
     case 413:
       return {
-        title: "This file is too large to upload here",
-        description: "The hosting platform rejected the upload (HTTP 413). Try a smaller PDF.",
+        title: "This document is too large",
+        description: "The hosting platform rejected the request (HTTP 413). Try a shorter PDF.",
       };
     case 504:
       return {
@@ -74,6 +74,11 @@ export function errorFromApi(
       return {
         title: "This file is larger than 20 MB",
         description: `The file is ${humanSize(fileSize)}. Compress it or split the lecture into smaller files.`,
+      };
+    case "TEXT_TOO_LARGE":
+      return {
+        title: "This document has too much text",
+        description: "It's more than the server accepts in one request. Split it into smaller PDFs.",
       };
     case "CORRUPT_PDF":
       return {
