@@ -205,6 +205,9 @@ const fakeRemote = () => {
   console.error = quiet;
 
   ok(createSupabaseCache("", "") === null, "supabase: unconfigured → no database cache");
+  console.error = (m) => logs.push(String(m));
+  ok(createSupabaseCache("not-a-url", "sb_secret_test") === null, "supabase: a malformed URL → no database cache, no crash");
+  console.error = quiet;
   ok(logs.every((l) => !l.includes("sb_secret_test")), "supabase: the secret key never reaches the logs");
 
   // End to end through generate: a broken database still gives a result.

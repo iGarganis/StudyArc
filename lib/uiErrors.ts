@@ -25,6 +25,36 @@ const OVERLOADED_ERROR: UiError = {
 };
 
 /**
+ * For a response that didn't come from our route, such as the hosting platform
+ * rejecting the request before the app runs. These bodies aren't JSON.
+ */
+export function errorFromStatus(status: number): UiError {
+  switch (status) {
+    case 403:
+    case 429:
+      return {
+        title: "The request was blocked",
+        description: `The hosting platform's security check stopped this request (HTTP ${status}). Reload the page and try again.`,
+      };
+    case 413:
+      return {
+        title: "This file is too large to upload here",
+        description: "The hosting platform rejected the upload (HTTP 413). Try a smaller PDF.",
+      };
+    case 504:
+      return {
+        title: "The request took too long",
+        description: "The server timed out (HTTP 504). Try again, or try a shorter PDF.",
+      };
+    default:
+      return {
+        title: GENERIC_ERROR.title,
+        description: `The server could not complete the request (HTTP ${status}). Try again shortly.`,
+      };
+  }
+}
+
+/**
  * Turn an /api/generate failure into the UI's title + text. The server's
  * `error` string stays the source for the one case its code can't distinguish:
  * PROVIDER_ERROR covers both an overloaded model and any other provider failure.

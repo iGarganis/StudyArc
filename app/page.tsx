@@ -20,6 +20,7 @@ import {
   GENERIC_ERROR,
   NOT_PDF_ERROR,
   errorFromApi,
+  errorFromStatus,
   type UiError,
 } from "@/lib/uiErrors";
 
@@ -283,9 +284,14 @@ export default function Home() {
       // Asking again for material you already have means you want a new version.
       if (panelsRef.current[mode]) fd.append("regenerate", "1");
       const res = await fetch("/api/generate", { method: "POST", body: fd });
-      const data = await res.json();
-      recordUsage(data.usage?.totalTokens ?? 0);
+      // Responses from the hosting platform, not our route, aren't JSON.
+      const data = await res.json().catch(() => null);
       if (generation !== generationRef.current) return;
+      if (data === null) {
+        setError(errorFromStatus(res.status));
+        return;
+      }
+      recordUsage(data.usage?.totalTokens ?? 0);
       if (!res.ok) {
         setError(errorFromApi(data?.code, data?.error, file.size));
         return;

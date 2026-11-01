@@ -63,8 +63,15 @@ export function createSupabaseCache(
   secretKey = process.env.SUPABASE_SECRET_KEY?.trim(),
 ): SupabaseCache | null {
   if (!url || !secretKey) return null;
-  const client = createClient(url, secretKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-  return new SupabaseCache(client);
+  try {
+    const client = createClient(url, secretKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    return new SupabaseCache(client);
+  } catch (err) {
+    // This runs when the route loads, so a malformed URL would otherwise fail
+    // every request, even though Gemini could still answer them.
+    logFailure("setup", err);
+    return null;
+  }
 }
