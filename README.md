@@ -96,5 +96,4 @@ lib/ai/
   prompts.ts            system prompts for each format
   validate.ts           JSON → typed material, including LaTeX repair
   retry.ts, queue.ts, chunking.ts    resilience layer
-docs/design/            the design mockup the interface follows
 ```
