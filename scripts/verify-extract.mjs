@@ -55,10 +55,10 @@ if (argPath) {
   await expectOk(
     "valid generated PDF",
     buildPdf([
-      "StudyBox pipeline smoke test.",
+      "StudyArc pipeline smoke test.",
       "Extraction works across multiple content lines here.",
     ]),
-    "StudyBox pipeline smoke test",
+    "StudyArc pipeline smoke test",
   );
   await expectError("empty file (0 bytes)", new Uint8Array(0), "EMPTY_FILE");
   await expectError(

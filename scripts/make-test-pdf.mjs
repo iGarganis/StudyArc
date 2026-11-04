@@ -73,7 +73,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   writeFileSync(
     out,
     buildPdf([
-      "StudyBox pipeline smoke test.",
+      "StudyArc pipeline smoke test.",
       "This single-page PDF verifies that text extraction works.",
       "Line three with numbers 12345 and symbols + - = .",
     ]),

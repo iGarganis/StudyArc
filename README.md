@@ -62,7 +62,7 @@ These run offline and don't need a key:
 ```bash
 node scripts/verify-extract.mjs   # PDF extraction and its error cases
 node scripts/verify-parse.mjs     # validators and LaTeX repair
-node scripts/verify-step4.mjs     # queue, caches, chunking, error classification
+node scripts/verify-generate.mjs  # queue, caches, translation, chunking, error classification
 ```
 
 To try the prompts without the UI (this uses your quota):
