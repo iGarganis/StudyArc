@@ -1,3 +1,16 @@
+/**
+ * Whether the file starts like a PDF. The "%PDF-" marker may follow a little
+ * leading junk, which PDF readers accept, so the first kilobyte is searched.
+ */
+export async function looksLikePdf(file: File) {
+  try {
+    const head = await file.slice(0, 1024).text();
+    return head.includes("%PDF-");
+  } catch {
+    return false;
+  }
+}
+
 // Copied here by scripts/copy-pdfjs.mjs.
 const PDFJS_URL = "/vendor/pdfjs.mjs";
 

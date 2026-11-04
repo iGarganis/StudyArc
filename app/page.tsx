@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Language, Mode } from "@/lib/ai/types";
-import { readPdfInBrowser } from "@/lib/browserPdf";
+import { looksLikePdf, readPdfInBrowser } from "@/lib/browserPdf";
 import { MAX_PDF_BYTES, MAX_TEXT_BYTES } from "@/lib/limits";
 import { AppHeader } from "@/components/AppHeader";
 import { HistorySheet } from "@/components/HistorySheet";
@@ -116,6 +116,24 @@ export default function Home() {
     }
     setUsage(loadUsage());
     setSessions(loadSessions());
+  }, []);
+
+  // A file dropped outside the upload area would make the browser open or
+  // download it and leave the app. The upload area handles its own drops
+  // before they reach the window.
+  useEffect(() => {
+    const block = (e: DragEvent) => {
+      // Already handled by the upload area, which calls preventDefault.
+      if (e.defaultPrevented || !e.dataTransfer?.types.includes("Files")) return;
+      e.preventDefault();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = "none";
+    };
+    window.addEventListener("dragover", block);
+    window.addEventListener("drop", block);
+    return () => {
+      window.removeEventListener("dragover", block);
+      window.removeEventListener("drop", block);
+    };
   }, []);
 
   // Add this generation's cost to today's running total (cache hits report 0).
@@ -313,11 +331,12 @@ export default function Home() {
     }
   };
 
-  const choose = (f: File | undefined) => {
+  const choose = async (f: File | undefined) => {
     if (!f) return;
-    const isPdf =
-      f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf");
-    if (!isPdf) {
+    // Check the content, not the name: a renamed .docx or image would
+    // otherwise be accepted and only fail once Generate is pressed.
+    // An empty file gets its own, clearer message when Generate is pressed.
+    if (f.size > 0 && !(await looksLikePdf(f))) {
       setError(NOT_PDF_ERROR);
       return;
     }
