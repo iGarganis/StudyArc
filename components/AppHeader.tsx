@@ -1,7 +1,7 @@
 "use client";
 
 import type { RefObject } from "react";
-import { History, Moon, Plus, Sun } from "lucide-react";
+import { BookOpen, History, Moon, Plus, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -31,8 +31,12 @@ export function AppHeader({
         <button
           type="button"
           onClick={onBrand}
-          className="mr-auto cursor-pointer rounded-sm pl-1 text-sm font-semibold sm:pl-0"
+          className="mr-auto inline-flex cursor-pointer items-center gap-2 rounded-sm pl-1 text-sm font-semibold sm:pl-0"
         >
+          {/* Same mark as app/icon.svg; the theme colours swap it in dark mode. */}
+          <span className="inline-flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
+            <BookOpen className="size-3.5" strokeWidth={2.4} aria-hidden />
+          </span>
           StudyArc
         </button>
 
