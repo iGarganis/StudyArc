@@ -10,7 +10,7 @@ Upload a lecture PDF and get a summary, a plain-language explanation, a quiz, tr
 |---|---|---|
 | ![Quiz in the dark theme](docs/screenshots/quiz-dark.png) | ![Flashcard](docs/screenshots/flashcards.png) | ![Quiz on a phone](docs/screenshots/mobile.png) |
 
-Quizzes and true/false sets have 20 items each, with an explanation for every answer. Flashcards let you repeat only the ones you missed. Anything can be exported as an A4 PDF, and past studies stay in your browser's local storage, so there are no accounts.
+Quizzes and true/false sets have 20 items each, with an explanation for every answer. Flashcards let you repeat only the ones you missed. Each format can be translated into English or Greek. Anything can be exported as an A4 PDF, and past studies stay in your browser's local storage, so there are no accounts.
 
 ## Stack
 
@@ -21,6 +21,8 @@ Next.js 15, React 19, TypeScript, Tailwind 4 and shadcn/ui. PDFs are parsed in t
 **A small quota.** The free Gemini tier gave me 20 requests a day for this model, and a full study uses 5. Results are cached in memory and in a Postgres table, keyed on a hash of the document text, format, model and prompt. Uploading the same text again costs nothing, and changing a prompt doesn't serve old results. Only the generated material is stored, never the document's text or anyone's answers. If the database is down or slow (free Supabase projects pause when idle), requests just go to Gemini after a 2.5 second timeout.
 
 **Unreliable model output.** Testing with real responses showed that Gemini sometimes wraps math in `\(...\)` instead of `$...$`, and sometimes escapes LaTeX twice. Both show up as raw text on the page, so `lib/ai/validate.ts` repairs them before anything reaches the UI.
+
+**Translation without breaking the quiz.** A translated quiz must keep its correct answers and formulas, but a model rewriting 20 questions could shift either. So only the wording is taken from the translation: answers, difficulty, item counts and LaTeX are copied from the original, and a translation that drops or adds an item is rejected. Translations are cached like everything else.
 
 **Rate limit errors.** Every 429 from Gemini mentions "plan and billing details", including the per-minute ones, so that phrase can't be used to detect the daily limit. Per-minute limits are retried with backoff and the daily limit is reported right away.
 

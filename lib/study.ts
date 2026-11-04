@@ -1,4 +1,4 @@
-import type { Difficulty, GeneratedMaterial, Mode } from "@/lib/ai/types";
+import type { Difficulty, GeneratedMaterial, Language, Mode } from "@/lib/ai/types";
 import { TESTING_MODES, isTestingMode } from "@/lib/ai/types";
 
 export const MODE_LIST: { id: Mode; label: string; blurb: string }[] = [
@@ -38,7 +38,39 @@ export type Result = {
   fileName: string;
   /** Where it came from. Anything but "generated" used no Gemini request. */
   source?: "generated" | "memory" | "database";
+  /** Set when `material` is a translation; `original` is what was generated. */
+  translatedTo?: Language;
+  original?: GeneratedMaterial;
 };
+
+export const LANGUAGE_LABEL: Record<Language, string> = { en: "English", el: "Greek" };
+
+/** Whether material is mostly Greek, ignoring formulas. */
+export function isMostlyGreek(material: GeneratedMaterial): boolean {
+  const words: string[] = [];
+  const collect = (v: unknown, key = ""): void => {
+    if (typeof v === "string") {
+      if (!["mode", "difficulty", "latex"].includes(key)) words.push(v);
+    } else if (Array.isArray(v)) v.forEach((x) => collect(x, key));
+    else if (v && typeof v === "object") for (const [k, x] of Object.entries(v)) collect(x, k);
+  };
+  collect(material);
+  const text = words.join(" ").replace(/\$\$[\s\S]+?\$\$|\$[^$\n]+?\$/g, " ");
+  const greek = (text.match(/[Ͱ-Ͽἀ-῿]/g) ?? []).length;
+  const latin = (text.match(/[A-Za-z]/g) ?? []).length;
+  return greek > latin;
+}
+
+/** The languages worth offering for a panel: never its own language. */
+export function translationTargets(result: Result): Language[] {
+  const original = result.original ?? result.material;
+  return (["en", "el"] as const).filter(
+    (target) =>
+      target !== result.translatedTo &&
+      // Greek material needs no Greek translation; "Show original" brings it back.
+      !(target === "el" && isMostlyGreek(original)),
+  );
+}
 /** The generated material of one study, at most one per mode. */
 export type Panels = Partial<Record<Mode, Result>>;
 

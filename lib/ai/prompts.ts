@@ -1,4 +1,4 @@
-import type { GenerateParams, Mode } from "./types.ts";
+import type { GenerateParams, GeneratedMaterial, Language, Mode } from "./types.ts";
 import { isTestingMode } from "./types.ts";
 
 /**
@@ -154,6 +154,35 @@ function coverageBlock(mode: Mode, covered: string[] | undefined): string {
     items.map((c, i) => `${i + 1}. ${c}`).join("\n") +
     `\n\n`
   );
+}
+
+const LANGUAGE_NAME: Record<Language, string> = { en: "English", el: "Greek" };
+
+/**
+ * Translate existing material. Structure, answers and formulas are copied back
+ * from the original afterwards (see mergeTranslation), so the model only has
+ * to get the words right.
+ */
+export function buildTranslatePrompt(material: GeneratedMaterial, target: Language): BuiltPrompt {
+  const name = LANGUAGE_NAME[target];
+  const system = `
+You are a careful translator of university study material for science and engineering students.
+
+STRICT RULES:
+1. Translate every human-readable text value into ${name}: titles, headings, prose, questions, options, explanations, statements, concepts, analogies, card sides and tips.
+2. Keep every piece of math exactly as it is, character for character: everything between dollar signs ($...$ and $$...$$) and every "latex" value. Translate only the words around the math.
+3. Keep the JSON structure exactly: the same keys, and the same number of items in every array, in the same order. Do not add, remove, merge, split or reorder anything.
+4. Do not change the values of "mode", "difficulty", "correctIndex" or "answer".
+5. Use correct, standard scientific terminology in ${name}.${target === "el" ? " The first time you use a specialised term, you may give the English term in parentheses, e.g. «ιδιοτιμή (eigenvalue)»." : ""}
+6. If a value is already in ${name}, keep it as it is.
+7. Return ONLY valid JSON that matches the requested schema. No markdown, no code fences, no comments, no text outside the JSON. Text values are plain text: no markdown emphasis.
+8. Because the result is JSON, every backslash of a LaTeX command must be escaped exactly once: two backslash characters in the raw JSON, which parse to one backslash in the value. Never write four.
+9. Do NOT put line breaks inside JSON strings.
+`.trim();
+  const user =
+    `Translate this study material into ${name}. Return the same JSON structure.\n\n` +
+    JSON.stringify(material);
+  return { system, user };
 }
 
 /** Build the system + user prompt for a mode against a document. */

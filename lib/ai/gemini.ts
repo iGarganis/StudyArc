@@ -4,18 +4,12 @@ import { AIProviderError } from "./types.ts";
 import type {
   AIProvider,
   GenerateParams,
-  GeneratedMaterial,
   GenerationResult,
   Mode,
+  TranslateParams,
 } from "./types.ts";
-import { buildPrompt } from "./prompts.ts";
-import {
-  parseSummary,
-  parseEli5,
-  parseQuiz,
-  parseTrueFalse,
-  parseFlashcards,
-} from "./validate.ts";
+import { buildPrompt, buildTranslatePrompt, type BuiltPrompt } from "./prompts.ts";
+import { mergeTranslation, parseMaterial } from "./validate.ts";
 import { withRetry } from "./retry.ts";
 
 const DEFAULT_MODEL = "gemini-2.5-flash";
@@ -192,35 +186,29 @@ export class GeminiProvider implements AIProvider {
     return withRetry(() => this.generateOnce(params), { onRetry: logRetry });
   }
 
+  translateMaterial(params: TranslateParams): Promise<GenerationResult> {
+    return withRetry(() => this.translateOnce(params), { onRetry: logRetry });
+  }
+
   /** A single end-to-end attempt: model call + parse/validate. */
   private async generateOnce(
     params: GenerateParams,
   ): Promise<GenerationResult> {
     const { data, usageTokens } = await this.callModel(
       SCHEMAS[params.mode],
-      params,
+      buildPrompt(params.mode, params),
     );
-    let material: GeneratedMaterial;
-    switch (params.mode) {
-      case "summary":
-        material = parseSummary(data);
-        break;
-      case "eli5":
-        material = parseEli5(data);
-        break;
-      case "quiz":
-        material = parseQuiz(data);
-        break;
-      case "truefalse":
-        material = parseTrueFalse(data);
-        break;
-      case "flashcards":
-        material = parseFlashcards(data);
-        break;
-      default:
-        throw new AIProviderError("PROVIDER_ERROR", "Unknown mode.");
-    }
-    return { material, usageTokens };
+    return { material: parseMaterial(params.mode, data), usageTokens };
+  }
+
+  /** One translation attempt: the model's words on the original's structure. */
+  private async translateOnce({ material, target }: TranslateParams): Promise<GenerationResult> {
+    const { data, usageTokens } = await this.callModel(
+      SCHEMAS[material.mode],
+      buildTranslatePrompt(material, target),
+    );
+    const translated = parseMaterial(material.mode, data);
+    return { material: mergeTranslation(material, translated), usageTokens };
   }
 
   /**
@@ -229,9 +217,8 @@ export class GeminiProvider implements AIProvider {
    */
   private async callModel(
     schema: Schema,
-    params: GenerateParams,
+    { system, user }: BuiltPrompt,
   ): Promise<{ data: unknown; usageTokens: number }> {
-    const { system, user } = buildPrompt(params.mode, params);
 
     let text: string | undefined;
     let usageTokens = 0;

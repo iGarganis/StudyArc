@@ -145,5 +145,56 @@ console.log("--- over-escaping ---");
   ok(parsed(spaced) === spaced, "escape: a row break with spacing is left alone");
 }
 
+console.log("--- translation merge ---");
+{
+  const { mergeTranslation, restoreMath, parseMaterial } = await import("../lib/ai/validate.ts");
+  const quiz = parseMaterial("quiz", {
+    title: "Eigenvalues",
+    questions: [{
+      question: `What is $${BS}lambda$ for $A$?`,
+      options: ["$1$", "two", "three", "four"],
+      correctIndex: 2,
+      explanations: ["a", "b", "c", "d"],
+      difficulty: "hard",
+    }],
+  });
+  const greek = {
+    mode: "quiz",
+    title: "Ιδιοτιμές",
+    questions: [{
+      question: `Ποια είναι η $${BS}text{lambda}$ για τον $A$;`,
+      options: ["$1$", "δύο", "τρία", "τέσσερα"],
+      correctIndex: 0, // a model must not be able to move the answer
+      explanations: ["α", "β", "γ", "δ"],
+      difficulty: "easy",
+    }],
+  };
+  const m = mergeTranslation(quiz, greek);
+  ok(m.title === "Ιδιοτιμές", "merge: text comes from the translation");
+  ok(m.questions[0].correctIndex === 2 && m.questions[0].difficulty === "hard", "merge: answer and difficulty come from the original");
+  ok(m.questions[0].question === `Ποια είναι η $${BS}lambda$ για τον $A$;`, "merge: formulas are restored from the original", m.questions[0].question);
+  ok(m.questions[0].options[1] === "δύο", "merge: options translated in place");
+
+  const short = { ...greek, questions: [] };
+  expectInvalid(() => mergeTranslation(quiz, short), "merge: a missing question is rejected");
+  const fewerOptions = { ...greek, questions: [{ ...greek.questions[0], options: ["a", "b", "c"] }] };
+  expectInvalid(() => mergeTranslation(quiz, fewerOptions), "merge: a changed option count is rejected");
+
+  const tf = parseMaterial("truefalse", { title: "t", questions: [{ statement: "s", answer: false, explanation: "e", difficulty: "easy" }] });
+  const tfT = mergeTranslation(tf, { mode: "truefalse", title: "τ", questions: [{ statement: "σ", answer: true, explanation: "ε", difficulty: "easy" }] });
+  ok(tfT.questions[0].answer === false, "merge: true/false answer comes from the original");
+
+  const sum = parseMaterial("summary", { title: "t", sections: [{ heading: "h", content: "c", keyFormulas: [{ latex: "E=mc^2", explanation: "energy" }] }], examTips: ["tip"] });
+  const sumT = mergeTranslation(sum, { mode: "summary", title: "τ", sections: [{ heading: "η", content: "κ", keyFormulas: [{ latex: "E=m c^{2} (changed)", explanation: "ενέργεια" }] }], examTips: ["συμβουλή"] });
+  ok(sumT.sections[0].keyFormulas[0].latex === "E=mc^2" && sumT.sections[0].keyFormulas[0].explanation === "ενέργεια", "merge: formula LaTeX always comes from the original");
+
+  ok(restoreMath("a $x$ b $y$", "α $z$ β") === "α $z$ β", "restoreMath: different counts are left alone");
+  ok(restoreMath("for $A$ and $B$", "για $B$ και $A$") === "για $B$ και $A$", "restoreMath: reordered but unchanged formulas stay put");
+  ok(
+    restoreMath(`if $x$ then ${"$"}${BS}text{yes}${"$"}`, `αν $x$ τότε ${"$"}${BS}text{ναι}${"$"}`) === `αν $x$ τότε ${"$"}${BS}text{yes}${"$"}`,
+    "restoreMath: only the altered formula is restored",
+  );
+}
+
 console.log(`\n${failures === 0 ? "ALL GREEN" : failures + " FAILURE(S)"}`);
 process.exitCode = failures === 0 ? 0 : 1;

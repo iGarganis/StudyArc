@@ -1,8 +1,14 @@
 "use client";
 
-import { Check, Database, Download, RefreshCw, X } from "lucide-react";
+import { Check, Database, Download, Languages, RefreshCw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Eli5View } from "@/components/Eli5View";
 import { FlashcardsView } from "@/components/FlashcardsView";
@@ -10,9 +16,15 @@ import { MathText } from "@/components/MathText";
 import { QuizView } from "@/components/QuizView";
 import { SummaryView } from "@/components/SummaryView";
 import { TrueFalseView } from "@/components/TrueFalseView";
-import type { Mode } from "@/lib/ai/types";
+import type { Language, Mode } from "@/lib/ai/types";
 import { exportMaterialToPdf } from "@/lib/exportPdf";
-import { MODE_LIST, type Panels, type Result } from "@/lib/study";
+import {
+  LANGUAGE_LABEL,
+  MODE_LIST,
+  translationTargets,
+  type Panels,
+  type Result,
+} from "@/lib/study";
 
 // New generations are new objects; keying the views by identity gives each one
 // fresh answers/progress, while switching tabs (same object) keeps them.
@@ -63,20 +75,26 @@ export function ModeTabs({
   panels,
   hasFile,
   loadingMode,
+  loadingText,
   activeTab,
   scoreSlot,
   onTabChange,
   onGenerate,
   onRemove,
+  onTranslate,
+  onShowOriginal,
 }: {
   panels: Panels;
   hasFile: boolean;
   loadingMode: Mode | null;
+  loadingText: string;
   activeTab: Mode;
   scoreSlot: HTMLElement | null;
   onTabChange: (mode: Mode) => void;
   onGenerate: (mode: Mode) => void;
   onRemove: (mode: Mode) => void;
+  onTranslate: (mode: Mode, target: Language) => void;
+  onShowOriginal: (mode: Mode) => void;
 }) {
   const busy = loadingMode !== null;
 
@@ -114,7 +132,7 @@ export function ModeTabs({
             {loading && (
               <Card className="p-6">
                 <p role="status" className="text-base leading-6 font-medium">
-                  Generating material. This can take up to 2 minutes.
+                  {loadingText}
                 </p>
                 <p className="mt-1 text-muted-foreground">
                   You can browse the other tabs in the meantime.
@@ -137,6 +155,20 @@ export function ModeTabs({
                         , no Gemini request used
                       </p>
                     )}
+                    {result.translatedTo && (
+                      <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
+                        <Languages className="size-3.5 shrink-0" aria-hidden />
+                        Translated to {LANGUAGE_LABEL[result.translatedTo]} ·
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => onShowOriginal(m.id)}
+                          className="cursor-pointer rounded-sm font-medium text-foreground underline underline-offset-4 disabled:opacity-50 max-sm:py-2.5"
+                        >
+                          Show original
+                        </button>
+                      </p>
+                    )}
                     <p className="truncate text-muted-foreground">
                       {result.fileName}
                       {result.meta?.totalPages
@@ -155,6 +187,32 @@ export function ModeTabs({
                       <Download />
                       Download PDF
                     </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          aria-label="Translate"
+                          title="Translate"
+                          disabled={busy || translationTargets(result).length === 0}
+                          className="max-md:w-8 max-md:px-0 max-sm:w-10"
+                        >
+                          <Languages />
+                          <span className="max-md:hidden">Translate</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-auto min-w-36">
+                        {translationTargets(result).map((target) => (
+                          <DropdownMenuItem
+                            key={target}
+                            onSelect={() => onTranslate(m.id, target)}
+                            className="cursor-pointer px-2 py-1.5 max-sm:py-2.5"
+                          >
+                            {LANGUAGE_LABEL[target]}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     <Button
                       variant="ghost"
                       size="sm"

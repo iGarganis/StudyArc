@@ -4,12 +4,14 @@ import type {
   GenerateParams,
   GeneratedMaterial,
   GenerationResult,
+  Mode,
+  TranslateParams,
 } from "./types.ts";
 import { InMemoryCache, cacheKey, type Cache, type RemoteCache } from "../cache.ts";
 import { createSupabaseCache } from "../supabaseCache.ts";
 import { generationQueue } from "./queue.ts";
 import { needsChunking, chunkText, mergeMaterials } from "./chunking.ts";
-import { buildPrompt } from "./prompts.ts";
+import { buildPrompt, buildTranslatePrompt } from "./prompts.ts";
 
 const memoryCache: Cache<GeneratedMaterial> = new InMemoryCache();
 const defaultRemoteCache = createSupabaseCache();
@@ -34,6 +36,8 @@ export interface GenerateOptions {
   remoteCache?: RemoteCache<GeneratedMaterial> | null;
 }
 
+const model = () => process.env.GEMINI_MODEL?.trim() ?? "";
+
 /**
  * What makes two requests interchangeable. The prompt and model are included so
  * that improving a prompt never serves material made with the old one. `covered`
@@ -42,9 +46,8 @@ export interface GenerateOptions {
  */
 function requestKey(params: GenerateParams): string {
   const { system } = buildPrompt(params.mode, { ...params, documentText: "", covered: undefined });
-  const model = process.env.GEMINI_MODEL?.trim() ?? "";
   const context = params.courseContext?.trim() ?? "";
-  return cacheKey(params.documentText, params.mode, `${model}:${context}:${system}`);
+  return cacheKey(params.documentText, params.mode, `${model()}:${context}:${system}`);
 }
 
 /**
@@ -56,13 +59,44 @@ export function generateStudyMaterial(
   params: GenerateParams,
   options: GenerateOptions = {},
 ): Promise<GenerationOutcome> {
+  return runCached(requestKey(params), params.mode, options, (provider) =>
+    generationQueue.run(() => produce(provider, params)),
+  );
+}
+
+/**
+ * Translate material into English or Greek, with the same caching. The key is
+ * the material itself plus the target language, so translating the same
+ * material again is free for everyone.
+ */
+export function translateStudyMaterial(
+  params: TranslateParams,
+  options: GenerateOptions = {},
+): Promise<GenerationOutcome> {
+  const { system } = buildTranslatePrompt(params.material, params.target);
+  const key = cacheKey(
+    JSON.stringify(params.material),
+    `translate:${params.material.mode}`,
+    `${params.target}:${model()}:${system}`,
+  );
+  return runCached(key, params.material.mode, options, (provider) =>
+    generationQueue.run(() => provider.translateMaterial(params)),
+  );
+}
+
+/** Check memory, then the database, then make the call and store its result. */
+function runCached(
+  key: string,
+  mode: Mode,
+  options: GenerateOptions,
+  make: (provider: AIProvider) => Promise<GenerationResult>,
+): Promise<GenerationOutcome> {
   const useCache = options.useCache ?? true;
   const remote = useCache
     ? options.remoteCache === undefined
       ? defaultRemoteCache
       : options.remoteCache
     : null;
-  const key = requestKey(params);
 
   if (useCache && !options.refresh) {
     const pending = inFlight.get(key);
@@ -71,11 +105,10 @@ export function generateStudyMaterial(
 
   const promise = (async (): Promise<GenerationOutcome> => {
     if (useCache && !options.refresh) {
-      const hit = await findCached(key, params, remote);
+      const hit = await findCached(key, mode, remote);
       if (hit) return { material: hit.material, usageTokens: 0, source: hit.source };
     }
-    const provider = options.provider ?? getProvider();
-    const result = await generationQueue.run(() => produce(provider, params));
+    const result = await make(options.provider ?? getProvider());
     if (useCache) {
       memoryCache.set(key, result.material);
       await remote?.set(key, result.material);
@@ -96,13 +129,13 @@ export function generateStudyMaterial(
 /** Look in memory first, then the database, keeping a database hit in memory. */
 async function findCached(
   key: string,
-  params: GenerateParams,
+  mode: Mode,
   remote: RemoteCache<GeneratedMaterial> | null,
 ): Promise<{ material: GeneratedMaterial; source: MaterialSource } | undefined> {
   const inMemory = memoryCache.get(key);
   if (inMemory) return { material: inMemory, source: "memory" };
   const stored = await remote?.get(key);
-  if (stored?.mode !== params.mode) return undefined;
+  if (stored?.mode !== mode) return undefined;
   memoryCache.set(key, stored);
   return { material: stored, source: "database" };
 }

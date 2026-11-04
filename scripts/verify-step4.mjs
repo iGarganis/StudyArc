@@ -219,6 +219,30 @@ const fakeRemote = () => {
   ok(res.source === "generated" && s.calls() === 1 && res.material.mode === "summary", "generation still works with the database down");
 }
 
+console.log("\n--- translation caching ---");
+{
+  const { translateStudyMaterial } = await import("../lib/ai/generate.ts");
+  resetGenerationState();
+  const remote = fakeRemote();
+  let calls = 0;
+  const provider = {
+    async generateMaterial() { throw new Error("not used"); },
+    async translateMaterial({ material, target }) { calls++; return { material: { ...material, title: `${target}:${material.title}` }, usageTokens: 50 }; },
+  };
+  const material = sm("Original");
+  const first = await translateStudyMaterial({ material, target: "en" }, { provider, remoteCache: remote });
+  ok(first.source === "generated" && first.material.title === "en:Original" && calls === 1, "translate: first call goes to the model");
+  resetGenerationState();
+  const again = await translateStudyMaterial({ material, target: "en" }, { provider, remoteCache: remote });
+  ok(again.source === "database" && calls === 1, "translate: the same translation comes from the database");
+  const other = await translateStudyMaterial({ material, target: "el" }, { provider, remoteCache: remote });
+  ok(other.source === "generated" && other.material.title === "el:Original" && calls === 2, "translate: another language is a new translation");
+  const changed = await translateStudyMaterial({ material: sm("Different"), target: "en" }, { provider, remoteCache: remote });
+  ok(changed.source === "generated" && calls === 3, "translate: different material is a new translation");
+  const gen = await generateStudyMaterial({ documentText: "doc-T", mode: "summary" }, { provider: stub().provider, remoteCache: remote });
+  ok(gen.source === "generated", "translate: translations don't collide with generated material");
+}
+
 console.log("\n--- toAIProviderError quota classification ---");
 const e = (msg, status) => Object.assign(new Error(msg), { status });
 ok(toAIProviderError(e("Quota exceeded ... GenerateRequestsPerDayPerProjectPerModel ... limit: 0", 429)).code === "QUOTA_EXHAUSTED", "daily/limit:0 → QUOTA_EXHAUSTED");

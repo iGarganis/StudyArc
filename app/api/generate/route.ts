@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { generateStudyMaterial } from "@/lib/ai/generate";
-import { AIProviderError, isMode } from "@/lib/ai/types";
+import { isMode } from "@/lib/ai/types";
+import { fail, failFromError } from "@/lib/apiResponses";
 import { MAX_TEXT_BYTES, MIN_TEXT_CHARS } from "@/lib/limits";
 
 // The Gemini SDK needs the Node.js runtime (not Edge).
@@ -42,9 +43,7 @@ export async function POST(req: NextRequest) {
       usage: { totalTokens: usageTokens },
     });
   } catch (err) {
-    if (err instanceof AIProviderError)
-      return fail(err.userMessage, statusFor(err.code), err.code);
-    return fail("Unexpected error while generating material.", 500);
+    return failFromError(err, "Unexpected error while generating material.");
   }
 }
 
@@ -53,23 +52,4 @@ function parseCovered(value: unknown): string[] | undefined {
   if (!Array.isArray(value)) return undefined;
   const items = value.filter((x): x is string => typeof x === "string" && x.trim().length > 0);
   return items.length > 0 ? items : undefined;
-}
-
-function fail(error: string, status: number, code?: string) {
-  return NextResponse.json(code ? { error, code } : { error }, { status });
-}
-
-function statusFor(code: string): number {
-  switch (code) {
-    case "MISSING_API_KEY":
-      return 500;
-    case "RATE_LIMITED":
-    case "QUOTA_EXHAUSTED":
-      return 429;
-    case "INVALID_RESPONSE":
-    case "PROVIDER_ERROR":
-      return 502;
-    default:
-      return 500;
-  }
 }

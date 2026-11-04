@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Mode } from "@/lib/ai/types";
+import type { Language, Mode } from "@/lib/ai/types";
 import { readPdfInBrowser } from "@/lib/browserPdf";
 import { MAX_PDF_BYTES, MAX_TEXT_BYTES } from "@/lib/limits";
 import { AppHeader } from "@/components/AppHeader";
@@ -10,6 +10,7 @@ import { LandingFeatures, LandingIntro } from "@/components/Landing";
 import { ModeTabs } from "@/components/ModeTabs";
 import { UploadArea } from "@/components/UploadArea";
 import {
+  LANGUAGE_LABEL,
   MODE_LIST,
   extractCovered,
   todayStr,
@@ -81,6 +82,7 @@ const newId = () =>
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [loadingMode, setLoadingMode] = useState<Mode | null>(null);
+  const [loadingText, setLoadingText] = useState("");
   const [error, setError] = useState<UiError | null>(null);
   const [panels, setPanels] = useState<Panels>({});
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -195,6 +197,71 @@ export default function Home() {
     });
   };
 
+  // Swap one mode's material in place, in the open study and its history entry.
+  const replacePanel = (mode: Mode, result: Result) => {
+    const next: Panels = { ...panelsRef.current, [mode]: result };
+    setStudy(next, activeId);
+    if (!activeId) return;
+    setSessions((prev) => {
+      const list = prev.map((s) => (s.id === activeId ? { ...s, panels: next } : s));
+      saveSessions(list);
+      return list;
+    });
+  };
+
+  // Translate the material of one tab. Works without the PDF, from History too.
+  const translate = async (mode: Mode, target: Language) => {
+    const current = panelsRef.current[mode];
+    if (!current || loadingMode) return;
+    const generation = ++generationRef.current;
+    setError(null);
+    setLoadingMode(mode);
+    setLoadingText(`Translating to ${LANGUAGE_LABEL[target]}. This can take up to a minute.`);
+    try {
+      const original = current.original ?? current.material;
+      const res = await fetch("/api/translate", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ material: original, target }),
+      });
+      const data = await res.json().catch(() => null);
+      if (generation !== generationRef.current) return;
+      if (data === null) {
+        setError(errorFromStatus(res.status));
+        return;
+      }
+      recordUsage(data.usage?.totalTokens ?? 0);
+      if (!res.ok) {
+        setError(errorFromApi(data?.code, data?.error, 0));
+        return;
+      }
+      replacePanel(mode, {
+        ...current,
+        material: data.material,
+        original,
+        translatedTo: target,
+        source: data.source,
+      });
+    } catch {
+      if (generation === generationRef.current) setError(GENERIC_ERROR);
+    } finally {
+      if (generation === generationRef.current) setLoadingMode(null);
+    }
+  };
+
+  // Back to the material as it was generated. No request needed.
+  const showOriginal = (mode: Mode) => {
+    const current = panelsRef.current[mode];
+    if (!current?.original) return;
+    replacePanel(mode, {
+      ...current,
+      material: current.original,
+      original: undefined,
+      translatedTo: undefined,
+      source: undefined,
+    });
+  };
+
   // Reopen a past session with every panel the user made for that PDF.
   const openSession = (s: Session) => {
     cancelGeneration();
@@ -274,6 +341,7 @@ export default function Home() {
     const generation = ++generationRef.current;
     setError(null);
     setLoadingMode(mode);
+    setLoadingText("Generating material. This can take up to 2 minutes.");
     setSelectedTab(mode);
     try {
       if (file.size > MAX_PDF_BYTES) {
@@ -388,11 +456,14 @@ export default function Home() {
               panels={panels}
               hasFile={Boolean(file)}
               loadingMode={loadingMode}
+              loadingText={loadingText}
               activeTab={activeTab}
               scoreSlot={scoreSlot}
               onTabChange={setSelectedTab}
               onGenerate={generate}
               onRemove={removePanel}
+              onTranslate={translate}
+              onShowOriginal={showOriginal}
             />
           )}
         </div>

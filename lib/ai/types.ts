@@ -145,6 +145,18 @@ export interface GenerationResult {
   usageTokens: number;
 }
 
+/** Languages material can be translated into. */
+export type Language = "en" | "el";
+
+export function isLanguage(value: unknown): value is Language {
+  return value === "en" || value === "el";
+}
+
+export interface TranslateParams {
+  material: GeneratedMaterial;
+  target: Language;
+}
+
 /**
  * The single surface every AI provider implements. Nothing provider-specific
  * (no @google/genai types) crosses this boundary, so a GroqProvider can be
@@ -152,6 +164,8 @@ export interface GenerationResult {
  */
 export interface AIProvider {
   generateMaterial(params: GenerateParams): Promise<GenerationResult>;
+  /** Translate the text of existing material, keeping its structure. */
+  translateMaterial(params: TranslateParams): Promise<GenerationResult>;
 }
 
 export type AIErrorCode =
