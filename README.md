@@ -2,6 +2,8 @@
 
 I built this in my free time to make studying a bit easier for me and my friends.
 
+Live at **[studyarc.garganis.dev](https://studyarc.garganis.dev)**.
+
 Upload a lecture PDF and get a summary, a plain-language explanation, a quiz, true/false questions and flashcards. The output follows the language of the PDF, so Greek notes give you Greek material, and formulas are rendered with KaTeX.
 
 ![Summary view](docs/screenshots/summary.png)
