@@ -36,7 +36,7 @@ The Gemini SDK is only imported in `lib/ai/gemini.ts`, so another provider would
 
 ## Running it
 
-You need Node.js and a [Gemini API key](https://aistudio.google.com/apikey).
+You need Node.js 22.18 or newer and a [Gemini API key](https://aistudio.google.com/apikey).
 
 ```bash
 npm install
@@ -71,4 +71,4 @@ To try the prompts without the UI (this uses your quota):
 npm run test:pipeline -- samples/your-lecture.pdf summary
 ```
 
-`.txt` and `.md` files work too, and `samples/` is git-ignored.
+`.txt` and `.md` files work too. Anything you put in `samples/` is git-ignored.
